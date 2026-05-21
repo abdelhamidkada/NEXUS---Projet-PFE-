@@ -5,10 +5,11 @@ CREATE TABLE roles (
 
 CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    cin VARCHAR(20) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    account_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE user_roles (
@@ -21,11 +22,7 @@ CREATE TABLE user_roles (
 
 -- Insertion des rôles natifs définis dans ton périmètre PFE
 INSERT INTO roles (name) VALUES ('EMPLOYEE');
-
 INSERT INTO roles (name) VALUES ('MANAGER');
-
 INSERT INTO roles (name) VALUES ('HR_ADMIN');
-
 INSERT INTO roles (name) VALUES ('IT_ADMIN');
-
 INSERT INTO roles (name) VALUES ('DIRECTION');
