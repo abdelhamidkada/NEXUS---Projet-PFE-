@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  nexus-db:
+    image: mysql:8.0
+    container_name: nexus_mysql_container
+    restart: always
+    environment:
+      MYSQL_DATABASE: nexus_erp_db
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: nexus_user
+      MYSQL_PASSWORD: nexus_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - nexus_db_data:/var/lib/mysql
+
+volumes:
+  nexus_db_data:
