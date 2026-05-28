@@ -1,0 +1,815 @@
+import React, { useState, useEffect } from 'react';
+import useAuthStore from './store/useAuthStore';
+import apiClient from './api/apiClient';
+import nexusLogo from './assets/NEXUS-LOGO.png';
+import {
+  Lock,
+  Mail,
+  Users,
+  LogOut,
+  Search,
+  Plus,
+  Trash2,
+  Pencil,
+  Eye,
+  ChevronRight,
+  CheckCircle,
+  Clock,
+  FileText,
+  Award,
+  Building2,
+  AlertCircle,
+  X,
+  CreditCard,
+  ShieldCheck,
+  LayoutDashboard,
+  Bell,
+  ChevronDown,
+  MoreHorizontal,
+  ArrowUpRight,
+  Filter,
+} from 'lucide-react';
+
+// ─── Sidebar navigation items ─────────────────────────────────────────────────
+const NAV_ITEMS = [
+  { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+  { id: 'profiles',  label: 'Profils employés', icon: Users },
+  { id: 'documents', label: 'Documents RH',     icon: FileText },
+  { id: 'skills',    label: 'Compétences',       icon: Award },
+];
+
+// ─── Main App ──────────────────────────────────────────────────────────────────
+function App() {
+  const { user, isAuthenticated, login, logout } = useAuthStore();
+
+  // Login form
+  const [email, setEmail]             = useState('');
+  const [password, setPassword]       = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  // Dashboard data
+  const [profiles, setProfiles]       = useState([]);
+  const [loading, setLoading]         = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDept, setSelectedDept] = useState('ALL');
+  const [activeNav, setActiveNav]     = useState('profiles');
+
+  // Profile detail drawer
+  const [viewingProfile, setViewingProfile] = useState(null);
+  const [detailTab, setDetailTab]           = useState('skills');
+
+  // Create / Edit modal
+  const [isFormOpen, setIsFormOpen]       = useState(false);
+  const [editingProfile, setEditingProfile] = useState(null);
+  const [formUserId, setFormUserId]       = useState('');
+  const [formJobTitle, setFormJobTitle]   = useState('');
+  const [formDept, setFormDept]           = useState('');
+  const [formRib, setFormRib]             = useState('');
+  const [formLoading, setFormLoading]     = useState(false);
+
+  // Toast
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const fetchProfiles = async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get('/api/v1/hr/profiles');
+      setProfiles(res.data);
+    } catch {
+      showToast('Erreur lors de la récupération des profils.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { if (isAuthenticated) fetchProfiles(); }, [isAuthenticated]);
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!email || !password) { showToast('Veuillez remplir tous les champs.', 'error'); return; }
+    setLoginLoading(true);
+    try {
+      const res = await apiClient.post('/api/auth/login', { email, password });
+      const { token: jwtToken } = res.data;
+      let name = 'Collaborateur', roles = ['EMPLOYEE'];
+      if (email.toLowerCase() === 'admin@nexus.com') { name = 'Administrateur RH'; roles = ['HR_ADMIN', 'DIRECTION']; }
+      else if (email.toLowerCase() === 'employee@nexus.com') { name = 'Jane Doe'; roles = ['EMPLOYEE']; }
+      login(jwtToken, { email, name, roles });
+      showToast(`Bienvenue, ${name} !`);
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Identifiants invalides.', 'error');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const hasAdminRole = () => user?.roles?.some(r => ['HR_ADMIN', 'DIRECTION'].includes(r));
+
+  // ── CRUD ──────────────────────────────────────────────────────────────────
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    if (!formUserId || !formJobTitle || !formDept) { showToast('Champs obligatoires manquants.', 'error'); return; }
+    setFormLoading(true);
+    try {
+      const payload = { userId: parseInt(formUserId), jobTitle: formJobTitle, department: formDept, rib: formRib || null };
+      if (editingProfile) {
+        const res = await apiClient.put(`/api/v1/hr/profiles/${editingProfile.id}`, payload);
+        setProfiles(profiles.map(p => p.id === editingProfile.id ? res.data : p));
+        showToast('Profil mis à jour avec succès.');
+      } else {
+        const res = await apiClient.post('/api/v1/hr/profiles', payload);
+        setProfiles([...profiles, res.data]);
+        showToast('Profil créé avec succès.');
+      }
+      handleCloseForm();
+    } catch (err) {
+      showToast(err.response?.data?.message || "Erreur lors de l'enregistrement.", 'error');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDeleteProfile = async (id, e) => {
+    e.stopPropagation();
+    if (!hasAdminRole()) { showToast('Permissions insuffisantes.', 'error'); return; }
+    if (!window.confirm('Supprimer définitivement ce profil ?')) return;
+    try {
+      await apiClient.delete(`/api/v1/hr/profiles/${id}`);
+      setProfiles(profiles.filter(p => p.id !== id));
+      if (viewingProfile?.id === id) setViewingProfile(null);
+      showToast('Profil supprimé.');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Erreur lors de la suppression.', 'error');
+    }
+  };
+
+  const handleOpenEdit = (profile, e) => {
+    e.stopPropagation();
+    setEditingProfile(profile);
+    setFormUserId(profile.userId);
+    setFormJobTitle(profile.jobTitle);
+    setFormDept(profile.department);
+    setFormRib('');
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false); setEditingProfile(null);
+    setFormUserId(''); setFormJobTitle(''); setFormDept(''); setFormRib('');
+  };
+
+  const filteredProfiles = profiles.filter(p => {
+    const q = searchQuery.toLowerCase();
+    const matchSearch = [p.firstName, p.lastName, p.email, p.jobTitle, p.department]
+      .some(v => (v || '').toLowerCase().includes(q));
+    const matchDept = selectedDept === 'ALL' || p.department === selectedDept;
+    return matchSearch && matchDept;
+  });
+
+  const departments = ['ALL', ...new Set(profiles.map(p => p.department).filter(Boolean))];
+
+  // ── Derived stats ──────────────────────────────────────────────────────────
+  const totalSkills = profiles.reduce((a, p) => a + (p.skills?.length || 0), 0);
+  const totalDocs   = profiles.reduce((a, p) => a + (p.documents?.length || 0), 0);
+  const activeDepts = new Set(profiles.map(p => p.department).filter(Boolean)).size;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LOGIN PAGE
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+
+        {/* Toast */}
+        {toast && (
+          <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-lg border shadow-md text-sm font-medium
+            ${toast.type === 'success' ? 'bg-white border-green-200 text-green-800' : 'bg-white border-red-200 text-red-700'}`}>
+            {toast.type === 'success'
+              ? <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+              : <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />}
+            {toast.message}
+          </div>
+        )}
+
+        <div className="w-full max-w-sm">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <img src={nexusLogo} alt="NEXUS ERP" className="h-14 w-auto object-contain" />
+          </div>
+
+          {/* Card */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-8">
+            <h1 className="text-lg font-semibold text-gray-900 mb-1">Connexion</h1>
+            <p className="text-sm text-gray-500 mb-6">Accédez à votre espace NEXUS ERP.</p>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Adresse e-mail</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <input
+                    type="email" value={email} onChange={e => setEmail(e.target.value)}
+                    placeholder="prenom.nom@entreprise.com"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Mot de passe</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <input
+                    type="password" value={password} onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit" disabled={loginLoading}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                {loginLoading
+                  ? <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : 'Se connecter'}
+              </button>
+            </form>
+
+            {/* Quick fill */}
+            <div className="mt-6 pt-5 border-t border-gray-100">
+              <p className="text-xs text-gray-400 mb-2.5 font-medium">Comptes de démonstration</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => { setEmail('admin@nexus.com'); setPassword('admin123'); }}
+                  className="text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                >
+                  <p className="text-xs font-semibold text-gray-800">Admin RH</p>
+                  <p className="text-[11px] text-gray-400">Accès complet</p>
+                </button>
+                <button
+                  onClick={() => { setEmail('employee@nexus.com'); setPassword('employee123'); }}
+                  className="text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                >
+                  <p className="text-xs font-semibold text-gray-800">Employé</p>
+                  <p className="text-[11px] text-gray-400">Lecture seule</p>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-center text-xs text-gray-400 mt-6">© 2026 DyxIA · NEXUS ERP · Données chiffrées AES-256</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MAIN LAYOUT (Authenticated)
+  // ═══════════════════════════════════════════════════════════════════════════
+  return (
+    <div className="min-h-screen bg-gray-50 flex font-sans text-sm">
+
+      {/* ─── Toast ───────────────────────────────────────────────────────── */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg border shadow-md text-sm font-medium
+          ${toast.type === 'success' ? 'bg-white border-green-200 text-green-800' : 'bg-white border-red-200 text-red-700'}`}>
+          {toast.type === 'success'
+            ? <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+            : <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />}
+          {toast.message}
+        </div>
+      )}
+
+      {/* ─── SIDEBAR ─────────────────────────────────────────────────────── */}
+      <aside className="w-56 shrink-0 fixed inset-y-0 left-0 bg-white border-r border-gray-200 flex flex-col z-20">
+        {/* Logo */}
+        <div className="h-14 flex items-center px-4 border-b border-gray-100">
+          <img src={nexusLogo} alt="NEXUS ERP" className="h-8 w-auto object-contain" />
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-3 px-2">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">Menu principal</p>
+          {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveNav(id)}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mb-0.5
+                ${activeNav === id
+                  ? 'bg-blue-50 text-blue-700 font-semibold'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+            >
+              <Icon className={`h-4 w-4 shrink-0 ${activeNav === id ? 'text-blue-600' : 'text-gray-400'}`} />
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        {/* User profile footer */}
+        <div className="p-3 border-t border-gray-100">
+          <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-50 cursor-pointer group">
+            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+              <span className="text-xs font-bold text-blue-700">
+                {user?.name?.charAt(0) || 'U'}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-gray-800 truncate">{user?.name}</p>
+              <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
+            </div>
+            <button
+              onClick={logout}
+              title="Se déconnecter"
+              className="p-1 rounded text-gray-300 hover:text-red-500 transition-colors"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* ─── MAIN AREA (Topbar + Content) ────────────────────────────────── */}
+      <div className="flex-1 ml-56 flex flex-col min-h-screen">
+
+        {/* ─── TOPBAR ──────────────────────────────────────────────────── */}
+        <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 fixed top-0 right-0 left-56 z-10">
+          {/* Global search */}
+          <div className="relative w-80">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Rechercher un profil, département…"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 bg-gray-50"
+            />
+          </div>
+
+          {/* Right utilities */}
+          <div className="flex items-center gap-3">
+            <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500">
+              <Bell className="h-4 w-4" />
+              <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-red-500" />
+            </button>
+            <div className="flex items-center gap-2 pl-3 border-l border-gray-200">
+              <div className="h-7 w-7 rounded-full bg-blue-100 flex items-center justify-center">
+                <span className="text-xs font-bold text-blue-700">{user?.name?.charAt(0) || 'U'}</span>
+              </div>
+              <div className="hidden md:block">
+                <p className="text-xs font-semibold text-gray-800 leading-none">{user?.name}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">
+                  {hasAdminRole() ? 'Administrateur RH' : 'Employé'}
+                </p>
+              </div>
+              <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+            </div>
+          </div>
+        </header>
+
+        {/* ─── CONTENT ─────────────────────────────────────────────────── */}
+        <main className="flex-1 pt-14 p-6 overflow-y-auto">
+
+          {/* Page header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-base font-semibold text-gray-900">Profils employés</h1>
+              <p className="text-xs text-gray-500 mt-0.5">{profiles.length} collaborateur{profiles.length !== 1 ? 's' : ''} enregistré{profiles.length !== 1 ? 's' : ''}</p>
+            </div>
+            {hasAdminRole() && (
+              <button
+                onClick={() => setIsFormOpen(true)}
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Nouveau profil
+              </button>
+            )}
+          </div>
+
+          {/* ── Stats row ──────────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {[
+              { label: 'Collaborateurs', value: profiles.length, sub: 'Total dans le SIRH', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+              { label: 'Départements', value: activeDepts, sub: 'Unités organisationnelles', icon: Building2, color: 'text-violet-600', bg: 'bg-violet-50' },
+              { label: 'Compétences', value: totalSkills, sub: 'Répertoriées', icon: Award, color: 'text-amber-600', bg: 'bg-amber-50' },
+              { label: 'Documents RH', value: totalDocs, sub: 'Dans le coffre-fort', icon: FileText, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            ].map(({ label, value, sub, icon: Icon, color, bg }) => (
+              <div key={label} className="bg-white border border-gray-200 rounded-xl p-4 flex items-start gap-3 shadow-sm">
+                <div className={`${bg} ${color} p-2 rounded-lg shrink-0`}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-gray-900 leading-none">{value}</p>
+                  <p className="text-xs font-medium text-gray-700 mt-1">{label}</p>
+                  <p className="text-[11px] text-gray-400">{sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Data Table ─────────────────────────────────────────────── */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            {/* Table toolbar */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <h2 className="text-sm font-semibold text-gray-800">Liste des profils</h2>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5">
+                  <Filter className="h-3.5 w-3.5 text-gray-400" />
+                  <select
+                    value={selectedDept}
+                    onChange={e => setSelectedDept(e.target.value)}
+                    className="bg-transparent outline-none cursor-pointer text-gray-600 text-xs"
+                  >
+                    <option value="ALL">Tous les départements</option>
+                    {departments.filter(d => d !== 'ALL').map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Table */}
+            {loading ? (
+              <div className="flex items-center justify-center py-16 text-gray-400">
+                <span className="h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-3" />
+                Chargement des données…
+              </div>
+            ) : filteredProfiles.length === 0 ? (
+              <div className="py-16 text-center">
+                <AlertCircle className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm font-medium text-gray-500">Aucun profil trouvé</p>
+                <p className="text-xs text-gray-400 mt-1">Ajustez vos filtres ou créez un nouveau profil.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100 text-left">
+                      <th className="py-2.5 px-4 text-xs font-semibold text-gray-500">Collaborateur</th>
+                      <th className="py-2.5 px-4 text-xs font-semibold text-gray-500">Département</th>
+                      <th className="py-2.5 px-4 text-xs font-semibold text-gray-500">Poste</th>
+                      <th className="py-2.5 px-4 text-xs font-semibold text-gray-500 text-center">Compétences</th>
+                      <th className="py-2.5 px-4 text-xs font-semibold text-gray-500 text-center">Documents</th>
+                      <th className="py-2.5 px-4 text-xs font-semibold text-gray-500 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {filteredProfiles.map(p => {
+                      const initials = `${p.firstName?.charAt(0) || ''}${p.lastName?.charAt(0) || ''}`.toUpperCase() || 'EP';
+                      return (
+                        <tr
+                          key={p.id}
+                          onClick={() => { setViewingProfile(p); setDetailTab('skills'); }}
+                          className="hover:bg-gray-50 cursor-pointer transition-colors group"
+                        >
+                          {/* Collaborateur */}
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                                <span className="text-xs font-bold text-blue-700">{initials}</span>
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 text-xs">{p.firstName} {p.lastName}</p>
+                                <p className="text-[11px] text-gray-400">{p.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          {/* Département */}
+                          <td className="py-3 px-4">
+                            <span className="inline-flex items-center text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                              {p.department || '—'}
+                            </span>
+                          </td>
+                          {/* Poste */}
+                          <td className="py-3 px-4 text-xs text-gray-700">{p.jobTitle || <span className="text-gray-400">Non renseigné</span>}</td>
+                          {/* Compétences */}
+                          <td className="py-3 px-4 text-center">
+                            <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                              {p.skills?.length || 0}
+                            </span>
+                          </td>
+                          {/* Documents */}
+                          <td className="py-3 px-4 text-center">
+                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                              {p.documents?.length || 0}
+                            </span>
+                          </td>
+                          {/* Actions */}
+                          <td className="py-3 px-4">
+                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={e => { e.stopPropagation(); setViewingProfile(p); setDetailTab('skills'); }}
+                                className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+                                title="Voir le profil 360°"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                              </button>
+                              {hasAdminRole() && (
+                                <>
+                                  <button
+                                    onClick={e => handleOpenEdit(p, e)}
+                                    className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+                                    title="Modifier"
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={e => handleDeleteProfile(p.id, e)}
+                                    className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
+                                    title="Supprimer"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {/* Table footer */}
+                <div className="px-4 py-2.5 border-t border-gray-100 flex items-center justify-between">
+                  <p className="text-xs text-gray-400">
+                    Affichage de <span className="font-medium text-gray-700">{filteredProfiles.length}</span> sur <span className="font-medium text-gray-700">{profiles.length}</span> profils
+                  </p>
+                  <span className="text-[10px] text-gray-400 font-medium">NEXUS SIRH v2.0</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          PROFILE DETAIL DRAWER (right panel)
+      ════════════════════════════════════════════════════════════════════ */}
+      {viewingProfile && (
+        <div className="fixed inset-0 z-30 flex">
+          {/* Backdrop */}
+          <div className="flex-1 bg-black/20" onClick={() => setViewingProfile(null)} />
+
+          {/* Drawer */}
+          <div className="w-full max-w-xl bg-white border-l border-gray-200 shadow-xl flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <span className="text-sm font-bold text-blue-700">
+                    {`${viewingProfile.firstName?.charAt(0) || ''}${viewingProfile.lastName?.charAt(0) || ''}`.toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-900">{viewingProfile.firstName} {viewingProfile.lastName}</h2>
+                  <p className="text-xs text-gray-500">{viewingProfile.department} · {viewingProfile.jobTitle}</p>
+                </div>
+              </div>
+              <button onClick={() => setViewingProfile(null)} className="p-1.5 rounded hover:bg-gray-100 text-gray-400 transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Info banner */}
+            <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 grid grid-cols-3 gap-4 text-xs">
+              <div>
+                <p className="text-gray-400 font-medium">E-mail</p>
+                <p className="text-gray-800 font-semibold mt-0.5 truncate">{viewingProfile.email}</p>
+              </div>
+              <div>
+                <p className="text-gray-400 font-medium">Utilisateur ID</p>
+                <p className="text-gray-800 font-semibold mt-0.5">#{viewingProfile.userId}</p>
+              </div>
+
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-100 px-6">
+              {[['skills', 'Compétences'], ['documents', 'Documents RH']].map(([id, label]) => (
+                <button
+                  key={id}
+                  onClick={() => setDetailTab(id)}
+                  className={`py-3 mr-6 text-xs font-semibold border-b-2 transition-colors
+                    ${detailTab === id ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                >
+                  {label} ({id === 'skills' ? viewingProfile.skills?.length || 0 : viewingProfile.documents?.length || 0})
+                </button>
+              ))}
+            </div>
+
+            {/* Tab content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {detailTab === 'skills' ? (
+                !viewingProfile.skills?.length ? (
+                  <div className="text-center py-12 text-gray-400">
+                    <Award className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                    <p className="text-xs font-medium">Aucune compétence répertoriée</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {Array.from(viewingProfile.skills).map((s, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <p className="text-xs font-semibold text-gray-800 truncate">{s.name}</p>
+                            <div className="flex items-center gap-2 ml-2 shrink-0">
+                              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded">
+                                {s.category}
+                              </span>
+                              <span className="text-[11px] font-semibold text-gray-500">{s.proficiencyLevel}/5</span>
+                            </div>
+                          </div>
+                          <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-500 rounded-full transition-all"
+                              style={{ width: `${(s.proficiencyLevel / 5) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : (
+                !viewingProfile.documents?.length ? (
+                  <div className="text-center py-12 text-gray-400">
+                    <FileText className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                    <p className="text-xs font-medium">Aucun document dans le coffre-fort</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {Array.from(viewingProfile.documents).map((doc, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2 rounded-lg bg-white border border-gray-200 shrink-0">
+                            <FileText className="h-4 w-4 text-gray-500" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-gray-800">{doc.documentType}</p>
+                            <p className="text-[10px] text-gray-400 font-mono truncate">{doc.filePath}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 ml-2 shrink-0">
+                          {doc.isSigned ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded">
+                              <CheckCircle className="h-3 w-3" />
+                              Signé
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                              <Clock className="h-3 w-3" />
+                              En attente
+                            </span>
+                          )}
+                          <span className="text-[10px] text-gray-400">
+                            {new Date(doc.uploadDate).toLocaleDateString('fr-FR')}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+
+            {/* Drawer footer actions */}
+            {hasAdminRole() && (
+              <div className="px-6 py-3 border-t border-gray-100 flex gap-2">
+                <button
+                  onClick={e => { handleOpenEdit(viewingProfile, e); setViewingProfile(null); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold border border-gray-200 hover:border-blue-300 hover:text-blue-700 text-gray-600 py-2 rounded-lg transition-colors"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  Modifier
+                </button>
+                <button
+                  onClick={e => handleDeleteProfile(viewingProfile.id, e)}
+                  className="flex items-center justify-center gap-1.5 text-xs font-semibold border border-gray-200 hover:border-red-200 hover:text-red-600 text-gray-500 px-4 py-2 rounded-lg transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          CREATE / EDIT MODAL
+      ════════════════════════════════════════════════════════════════════ */}
+      {isFormOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/25">
+          <div className="w-full max-w-md bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">
+                  {editingProfile ? 'Modifier le profil' : 'Nouveau profil employé'}
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {editingProfile ? `ID profil #${editingProfile.id}` : 'Créer un nouveau collaborateur'}
+                </p>
+              </div>
+              <button onClick={handleCloseForm} className="p-1.5 rounded hover:bg-gray-100 text-gray-400 transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSaveProfile} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Identifiant utilisateur système <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  disabled={!!editingProfile}
+                  value={formUserId}
+                  onChange={e => setFormUserId(e.target.value)}
+                  placeholder="Ex: 2 (compte Jane Doe)"
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 disabled:bg-gray-50 disabled:text-gray-400"
+                  required
+                />
+                {!editingProfile && (
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    Saisissez <strong>2</strong> pour Jane Doe (employee@nexus.com) ou <strong>1</strong> pour Admin.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Intitulé du poste <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formJobTitle}
+                  onChange={e => setFormJobTitle(e.target.value)}
+                  placeholder="Ex: Développeur Full-Stack Senior"
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Département <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formDept}
+                  onChange={e => setFormDept(e.target.value)}
+                  placeholder="Ex: R&D, IT, Finance, RH…"
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Coordonnées bancaires (RIB)</label>
+                <input
+                  type="text"
+                  value={formRib}
+                  onChange={e => setFormRib(e.target.value)}
+                  placeholder="FR76 3000 2000 1000 2345 6789 123"
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 font-mono"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleCloseForm}
+                  className="flex-1 text-xs font-semibold border border-gray-200 hover:bg-gray-50 text-gray-600 py-2.5 rounded-lg transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={formLoading}
+                  className="flex-1 text-xs font-semibold bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-2.5 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                >
+                  {formLoading
+                    ? <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : (editingProfile ? 'Enregistrer les modifications' : 'Créer le profil')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;

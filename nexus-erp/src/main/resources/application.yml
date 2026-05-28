@@ -25,3 +25,5 @@ application:
   security:
     jwt:
       secret-key: dGhpcy1pcy1hLXZlcnktc2VjdXJlLTMyLWJ5dGUtbG9uZy1rZXktZm9yLWp3dC1zaWduaW5nLXVzaW5nLWhmYWMtMjU2LWFsZ29yaXRobQ==
+    encryption:
+      secret-key: "this-is-a-very-secure-32byte-key"

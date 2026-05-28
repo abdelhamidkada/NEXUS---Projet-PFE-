@@ -1,0 +1,2 @@
+ALTER TABLE employee_profiles
+ADD COLUMN rib VARCHAR(512) DEFAULT NULL;

@@ -1,7 +1,9 @@
 package com.dyxia.nexuserp.model;
 
+import com.dyxia.nexuserp.util.AttributeEncryptor;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,8 +18,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "skills")
-@EqualsAndHashCode(exclude = "skills")
+@ToString(exclude = {"skills", "documents"})
+@EqualsAndHashCode(exclude = {"skills", "documents"})
 public class EmployeeProfile {
 
     @Id
@@ -34,7 +36,17 @@ public class EmployeeProfile {
     @Column(length = 100)
     private String department;
 
+    @Convert(converter = AttributeEncryptor.class)
+    @Column(length = 512)
+    private String rib;
+
     @Builder.Default
+    @BatchSize(size = 25)
     @OneToMany(mappedBy = "employeeProfile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<EmployeeSkill> skills = new HashSet<>();
+
+    @Builder.Default
+    @BatchSize(size = 25)
+    @OneToMany(mappedBy = "employeeProfile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<HrDocument> documents = new HashSet<>();
 }

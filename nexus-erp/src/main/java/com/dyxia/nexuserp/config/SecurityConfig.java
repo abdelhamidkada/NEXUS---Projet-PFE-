@@ -11,6 +11,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,6 +19,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * Configuration de sécurité globale pour Spring Security 6.
@@ -25,6 +31,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -71,18 +78,42 @@ public class SecurityConfig {
     }
 
     /**
+     * Point d'entrée d'authentification personnalisé gérant les accès non autorisés
+     * en écrivant directement une réponse JSON propre et uniforme.
+     */
+    @Bean
+    public org.springframework.security.web.AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.setContentType("application/json;charset=UTF-8");
+            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+            
+            String json = String.format(
+                "{\"timestamp\":\"%s\",\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Accès non autorisé : %s\",\"path\":\"%s\"}",
+                java.time.LocalDateTime.now(),
+                authException.getMessage().replace("\"", "\\\""),
+                request.getRequestURI()
+            );
+            
+            response.getWriter().write(json);
+        };
+    }
+
+    /**
      * Configuration de la chaîne de filtres de sécurité (SecurityFilterChain) adaptée à Spring Security 6.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1. Désactivation du CSRF car nous utilisons des jetons JWT (architecture STATELESS)
+            // 1. Activer le support CORS avec notre source personnalisée
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            
+            // 2. Désactivation du CSRF car nous utilisons des jetons JWT (architecture STATELESS)
             .csrf(csrf -> csrf.disable())
             
-            // 2. Configuration de la politique de session en STATELESS
+            // 3. Configuration de la politique de session en STATELESS
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             
-            // 3. Définition des règles d'accès aux URLs :
+            // 4. Définition des règles d'accès aux URLs :
             //    - Accès public total pour l'authentification (/api/auth/** et /api/v1/auth/**)
             //    - Authentification obligatoire pour tout le reste
             .authorizeHttpRequests(auth -> auth
@@ -90,12 +121,36 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             
-            // 4. Définition du fournisseur d'authentification personnalisé
+            // 5. Définition du fournisseur d'authentification personnalisé
             .authenticationProvider(authenticationProvider())
             
-            // 5. Insertion du filtre JWT juste avant le filtre UsernamePasswordAuthenticationFilter classique de Spring
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            // 6. Insertion du filtre JWT juste avant le filtre UsernamePasswordAuthenticationFilter classique de Spring
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            
+            // 7. Configuration du point d'entrée d'exception personnalisé
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint(authenticationEntryPoint())
+            );
 
         return http.build();
+    }
+
+    /**
+     * Configuration globale de CORS pour autoriser l'application React en développement et production.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Autoriser le port de développement de Vite React
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control", "Accept", "X-Requested-With"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); // 1 heure de cache pour le preflight
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

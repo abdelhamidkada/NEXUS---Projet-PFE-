@@ -24,8 +24,8 @@ public class JwtService {
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
 
-    // Expiration stricte fixée à exactement 15 minutes (15 min * 60 s * 1000 ms)
-    private static final long JWT_EXPIRATION = 15 * 60 * 1000;
+    // Expiration fixée à 8 heures (8h * 60 min * 60 s * 1000 ms) pour les sessions de travail
+    private static final long JWT_EXPIRATION = 8 * 60 * 60 * 1000;
 
     /**
      * Génère un token d'accès JWT pour un utilisateur spécifique.
