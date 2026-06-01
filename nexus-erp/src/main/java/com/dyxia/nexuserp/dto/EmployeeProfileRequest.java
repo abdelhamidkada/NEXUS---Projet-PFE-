@@ -17,4 +17,13 @@ public class EmployeeProfileRequest {
     private String jobTitle;
     private String department;
     private String rib;
+    private String cin;
+    private String adresse;
+    private String contact;
+    private String typeContrat;
+    private java.time.LocalDate dateDebutContrat;
+    private Integer dureeContrat;
+    private Long hierarchieId;
+    private String photoUrl;
+    private String signatureNumerique;
 }

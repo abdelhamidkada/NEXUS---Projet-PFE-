@@ -49,6 +49,15 @@ public class EmployeeProfileService {
                 .jobTitle(request.getJobTitle())
                 .department(request.getDepartment())
                 .rib(request.getRib())
+                .cin(request.getCin())
+                .adresse(request.getAdresse())
+                .contact(request.getContact())
+                .typeContrat(request.getTypeContrat())
+                .dateDebutContrat(request.getDateDebutContrat())
+                .dureeContrat(request.getDureeContrat())
+                .hierarchie(request.getHierarchieId() != null ? userRepository.findById(request.getHierarchieId()).orElse(null) : null)
+                .photoUrl(request.getPhotoUrl())
+                .signatureNumerique(request.getSignatureNumerique())
                 .build();
 
         EmployeeProfile savedProfile = employeeProfileRepository.save(profile);
@@ -106,6 +115,19 @@ public class EmployeeProfileService {
         if (request.getRib() != null) {
             profile.setRib(request.getRib());
         }
+        profile.setCin(request.getCin());
+        profile.setAdresse(request.getAdresse());
+        profile.setContact(request.getContact());
+        profile.setTypeContrat(request.getTypeContrat());
+        profile.setDateDebutContrat(request.getDateDebutContrat());
+        profile.setDureeContrat(request.getDureeContrat());
+        if (request.getHierarchieId() != null) {
+            profile.setHierarchie(userRepository.findById(request.getHierarchieId()).orElse(null));
+        } else {
+            profile.setHierarchie(null);
+        }
+        profile.setPhotoUrl(request.getPhotoUrl());
+        profile.setSignatureNumerique(request.getSignatureNumerique());
 
         EmployeeProfile savedProfile = employeeProfileRepository.save(profile);
         return mapToResponse(savedProfile);
@@ -164,6 +186,15 @@ public class EmployeeProfileService {
                 .lastName(profile.getUser() != null ? profile.getUser().getLastName() : null)
                 .jobTitle(profile.getJobTitle())
                 .department(profile.getDepartment())
+                .cin(profile.getCin())
+                .adresse(profile.getAdresse())
+                .contact(profile.getContact())
+                .typeContrat(profile.getTypeContrat())
+                .dateDebutContrat(profile.getDateDebutContrat())
+                .dureeContrat(profile.getDureeContrat())
+                .hierarchieId(profile.getHierarchie() != null ? profile.getHierarchie().getId() : null)
+                .photoUrl(profile.getPhotoUrl())
+                .signatureNumerique(profile.getSignatureNumerique())
                 .skills(skills)
                 .documents(documents)
                 .build();

@@ -67,11 +67,31 @@ function App() {
   const [formJobTitle, setFormJobTitle]   = useState('');
   const [formDept, setFormDept]           = useState('');
   const [formRib, setFormRib]             = useState('');
+  const [formCin, setFormCin]             = useState('');
+  const [formAdresse, setFormAdresse]     = useState('');
+  const [formContact, setFormContact]     = useState('');
+  const [formTypeContrat, setFormTypeContrat] = useState('CDI');
+  const [formDateDebutContrat, setFormDateDebutContrat] = useState('');
+  const [formDureeContrat, setFormDureeContrat] = useState('');
+  const [formHierarchieId, setFormHierarchieId] = useState('');
+  const [formPhotoUrl, setFormPhotoUrl]   = useState('');
+  const [formSignatureNumerique, setFormSignatureNumerique] = useState('');
   const [formLoading, setFormLoading]     = useState(false);
 
   // Toast
   const [toast, setToast] = useState(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = React.useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setIsProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [profileMenuRef]);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -120,7 +140,21 @@ function App() {
     if (!formUserId || !formJobTitle || !formDept) { showToast('Champs obligatoires manquants.', 'error'); return; }
     setFormLoading(true);
     try {
-      const payload = { userId: parseInt(formUserId), jobTitle: formJobTitle, department: formDept, rib: formRib || null };
+      const payload = {
+        userId: parseInt(formUserId),
+        jobTitle: formJobTitle,
+        department: formDept,
+        rib: formRib || null,
+        cin: formCin || null,
+        adresse: formAdresse || null,
+        contact: formContact || null,
+        typeContrat: formTypeContrat || null,
+        dateDebutContrat: formDateDebutContrat || null,
+        dureeContrat: formDureeContrat !== '' ? parseInt(formDureeContrat) : null,
+        hierarchieId: formHierarchieId !== '' ? parseInt(formHierarchieId) : null,
+        photoUrl: formPhotoUrl || null,
+        signatureNumerique: formSignatureNumerique || null
+      };
       if (editingProfile) {
         const res = await apiClient.put(`/api/v1/hr/profiles/${editingProfile.id}`, payload);
         setProfiles(profiles.map(p => p.id === editingProfile.id ? res.data : p));
@@ -158,13 +192,25 @@ function App() {
     setFormUserId(profile.userId);
     setFormJobTitle(profile.jobTitle);
     setFormDept(profile.department);
-    setFormRib('');
+    setFormRib(profile.rib || '');
+    setFormCin(profile.cin || '');
+    setFormAdresse(profile.adresse || '');
+    setFormContact(profile.contact || '');
+    setFormTypeContrat(profile.typeContrat || 'CDI');
+    setFormDateDebutContrat(profile.dateDebutContrat || '');
+    setFormDureeContrat(profile.dureeContrat !== null && profile.dureeContrat !== undefined ? profile.dureeContrat : '');
+    setFormHierarchieId(profile.hierarchieId || '');
+    setFormPhotoUrl(profile.photoUrl || '');
+    setFormSignatureNumerique(profile.signatureNumerique || '');
     setIsFormOpen(true);
   };
 
   const handleCloseForm = () => {
     setIsFormOpen(false); setEditingProfile(null);
     setFormUserId(''); setFormJobTitle(''); setFormDept(''); setFormRib('');
+    setFormCin(''); setFormAdresse(''); setFormContact(''); setFormTypeContrat('CDI');
+    setFormDateDebutContrat(''); setFormDureeContrat(''); setFormHierarchieId('');
+    setFormPhotoUrl(''); setFormSignatureNumerique('');
   };
 
   const filteredProfiles = profiles.filter(p => {
@@ -362,7 +408,7 @@ function App() {
               <Bell className="h-4 w-4" />
               <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-red-500" />
             </button>
-            <div className="relative">
+            <div className="relative" ref={profileMenuRef}>
               <button
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 className="flex items-center gap-2 pl-3 border-l border-gray-200 hover:bg-gray-50 cursor-pointer p-1.5 rounded-lg transition-colors text-left focus:outline-none"
@@ -380,53 +426,47 @@ function App() {
               </button>
 
               {isProfileMenuOpen && (
-                <>
-                  {/* Invisible full-screen backdrop to handle click outside */}
-                  <div className="fixed inset-0 z-20" onClick={() => setIsProfileMenuOpen(false)} />
-                  
-                  {/* Dropdown Menu */}
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5 z-30 animate-in fade-in slide-in-from-top-2 duration-150">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-xs font-semibold text-gray-800 leading-none">{user?.name}</p>
-                      <p className="text-[9px] text-gray-400 mt-1 truncate">{user?.email}</p>
-                    </div>
-                    
-                    <button
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        setActiveNav('profiles');
-                      }}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors text-left"
-                    >
-                      <Users className="h-3.5 w-3.5 text-gray-400" />
-                      Profils employés
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        setActiveNav('attendance');
-                      }}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors text-left"
-                    >
-                      <Clock className="h-3.5 w-3.5 text-gray-400" />
-                      Ma Pointeuse
-                    </button>
-
-                    <div className="border-t border-gray-100 my-1" />
-
-                    <button
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        logout();
-                      }}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors text-left"
-                    >
-                      <LogOut className="h-3.5 w-3.5 text-red-500" />
-                      Se déconnecter
-                    </button>
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5 z-30 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <p className="text-xs font-semibold text-gray-800 leading-none">{user?.name}</p>
+                    <p className="text-[9px] text-gray-400 mt-1 truncate">{user?.email}</p>
                   </div>
-                </>
+                  
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      setActiveNav('profiles');
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <Users className="h-3.5 w-3.5 text-gray-400" />
+                    Profils employés
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      setActiveNav('attendance');
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <Clock className="h-3.5 w-3.5 text-gray-400" />
+                    Ma Pointeuse
+                  </button>
+
+                  <div className="border-t border-gray-100 my-1" />
+
+                  <button
+                    onClick={() => {
+                      setIsProfileMenuOpen(false);
+                      logout();
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors text-left"
+                  >
+                    <LogOut className="h-3.5 w-3.5 text-red-500" />
+                    Se déconnecter
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -531,7 +571,7 @@ function App() {
                           return (
                             <tr
                               key={p.id}
-                              onClick={() => { setViewingProfile(p); setDetailTab('skills'); }}
+                              onClick={() => { setViewingProfile(p); setDetailTab('infos'); }}
                               className="hover:bg-gray-50 cursor-pointer transition-colors group"
                             >
                               {/* Collaborateur */}
@@ -570,7 +610,7 @@ function App() {
                               <td className="py-3 px-4">
                                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
-                                    onClick={e => { e.stopPropagation(); setViewingProfile(p); setDetailTab('skills'); }}
+                                    onClick={e => { e.stopPropagation(); setViewingProfile(p); setDetailTab('infos'); }}
                                     className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
                                     title="Voir le profil 360°"
                                   >
@@ -670,21 +710,120 @@ function App() {
 
             {/* Tabs */}
             <div className="flex border-b border-gray-100 px-6">
-              {[['skills', 'Compétences'], ['documents', 'Documents RH']].map(([id, label]) => (
-                <button
-                  key={id}
-                  onClick={() => setDetailTab(id)}
-                  className={`py-3 mr-6 text-xs font-semibold border-b-2 transition-colors
-                    ${detailTab === id ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-                >
-                  {label} ({id === 'skills' ? viewingProfile.skills?.length || 0 : viewingProfile.documents?.length || 0})
-                </button>
-              ))}
+              {[
+                ['infos', 'Informations'],
+                ['skills', 'Compétences'],
+                ['documents', 'Documents RH']
+              ].map(([id, label]) => {
+                let badge = '';
+                if (id === 'skills') badge = ` (${viewingProfile.skills?.length || 0})`;
+                if (id === 'documents') badge = ` (${viewingProfile.documents?.length || 0})`;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setDetailTab(id)}
+                    className={`py-3 mr-6 text-xs font-semibold border-b-2 transition-colors
+                      ${detailTab === id ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                  >
+                    {label}{badge}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Tab content */}
             <div className="flex-1 overflow-y-auto p-6">
-              {detailTab === 'skills' ? (
+              {detailTab === 'infos' ? (
+                <div className="space-y-6">
+                  {/* Profil principal résumé */}
+                  <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex items-center gap-4">
+                    <div className="h-14 w-14 rounded-full bg-blue-100 border-2 border-white shadow flex items-center justify-center shrink-0">
+                      <span className="text-lg font-bold text-blue-700">
+                        {`${viewingProfile.firstName?.charAt(0) || ''}${viewingProfile.lastName?.charAt(0) || ''}`.toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">{viewingProfile.firstName} {viewingProfile.lastName}</p>
+                      <p className="text-xs font-semibold text-blue-600">{viewingProfile.jobTitle}</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{viewingProfile.department}</p>
+                    </div>
+                  </div>
+
+                  {/* Bloc Identité */}
+                  <div>
+                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Données d'Identité</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-3">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">CIN (Carte d'Identité)</p>
+                        <p className="text-xs font-semibold text-gray-800 mt-1">{viewingProfile.cin || 'Non renseigné'}</p>
+                      </div>
+                      <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-3">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Contact Téléphone</p>
+                        <p className="text-xs font-semibold text-gray-800 mt-1">{viewingProfile.contact || 'Non renseigné'}</p>
+                      </div>
+                      <div className="col-span-2 bg-gray-50/50 border border-gray-100 rounded-lg p-3">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Adresse de résidence</p>
+                        <p className="text-xs font-semibold text-gray-800 mt-1">{viewingProfile.adresse || 'Non renseignée'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bloc Contrat & Compte */}
+                  <div>
+                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Contrat & Banque</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-3">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Type de contrat</p>
+                        <p className="text-xs font-semibold text-gray-800 mt-1">
+                          <span className="inline-flex items-center text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                            {viewingProfile.typeContrat || 'CDI'}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-3">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Date de début</p>
+                        <p className="text-xs font-semibold text-gray-800 mt-1">
+                          {viewingProfile.dateDebutContrat 
+                            ? new Date(viewingProfile.dateDebutContrat).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+                            : 'Non définie'}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-3">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Durée de contrat</p>
+                        <p className="text-xs font-semibold text-gray-800 mt-1">
+                          {viewingProfile.dureeContrat ? `${viewingProfile.dureeContrat} mois` : 'Indéterminée (CDI)'}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-3">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">ID Supérieur (Hiérarchie)</p>
+                        <p className="text-xs font-semibold text-gray-800 mt-1">
+                          {viewingProfile.hierarchieId ? `#${viewingProfile.hierarchieId}` : 'Aucun'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Médias & Signature */}
+                  <div>
+                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Photo & Empreinte</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {viewingProfile.photoUrl && (
+                        <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-3 flex items-center gap-3">
+                          <img src={viewingProfile.photoUrl} alt="Photo" className="h-8 w-8 rounded-full object-cover border" />
+                          <div className="min-w-0">
+                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Photo URL</p>
+                            <p className="text-[10px] text-gray-500 truncate font-mono mt-0.5">{viewingProfile.photoUrl}</p>
+                          </div>
+                        </div>
+                      )}
+                      <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-3">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Signature électronique</p>
+                        <p className="text-[10px] font-mono text-gray-500 mt-1 truncate">{viewingProfile.signatureNumerique || 'Non signée'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : detailTab === 'skills' ? (
                 !viewingProfile.skills?.length ? (
                   <div className="text-center py-12 text-gray-400">
                     <Award className="h-8 w-8 mx-auto mb-2 text-gray-300" />
@@ -784,9 +923,9 @@ function App() {
       ════════════════════════════════════════════════════════════════════ */}
       {isFormOpen && (
         <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/25">
-          <div className="w-full max-w-md bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden">
+          <div className="w-full max-w-2xl bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
               <div>
                 <h2 className="text-sm font-semibold text-gray-900">
                   {editingProfile ? 'Modifier le profil' : 'Nouveau profil employé'}
@@ -801,67 +940,194 @@ function App() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSaveProfile} className="p-6 space-y-4">
+            <form onSubmit={handleSaveProfile} className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+              
+              {/* SECTION 1: INFORMATIONS PROFESSIONNELLES */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Identifiant utilisateur système <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  disabled={!!editingProfile}
-                  value={formUserId}
-                  onChange={e => setFormUserId(e.target.value)}
-                  placeholder="Ex: 2 (compte Jane Doe)"
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 disabled:bg-gray-50 disabled:text-gray-400"
-                  required
-                />
-                {!editingProfile && (
-                  <p className="text-[11px] text-gray-400 mt-1">
-                    Saisissez <strong>2</strong> pour Jane Doe (employee@nexus.com) ou <strong>1</strong> pour Admin.
-                  </p>
-                )}
+                <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3 pb-1 border-b border-gray-100">
+                  1. Informations Professionnelles
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Identifiant utilisateur système <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      disabled={!!editingProfile}
+                      value={formUserId}
+                      onChange={e => setFormUserId(e.target.value)}
+                      placeholder="Ex: 2 (compte Jane Doe)"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 disabled:bg-gray-50 disabled:text-gray-400"
+                      required
+                    />
+                    {!editingProfile && (
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        Saisissez <strong>2</strong> pour Jane Doe ou <strong>1</strong> pour Admin.
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Manager Direct (Hiérarchie ID)
+                    </label>
+                    <input
+                      type="number"
+                      value={formHierarchieId}
+                      onChange={e => setFormHierarchieId(e.target.value)}
+                      placeholder="Ex: 1 (Admin)"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Intitulé du poste <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formJobTitle}
+                      onChange={e => setFormJobTitle(e.target.value)}
+                      placeholder="Ex: Développeur Backend"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                      Département <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formDept}
+                      onChange={e => setFormDept(e.target.value)}
+                      placeholder="Ex: R&D, IT, RH..."
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
 
+              {/* SECTION 2: INFORMATIONS PERSONNELLES */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Intitulé du poste <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formJobTitle}
-                  onChange={e => setFormJobTitle(e.target.value)}
-                  placeholder="Ex: Développeur Full-Stack Senior"
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
-                  required
-                />
+                <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3 pb-1 border-b border-gray-100">
+                  2. Informations Personnelles (Identité)
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">CIN (Carte Nationale d'Identité)</label>
+                    <input
+                      type="text"
+                      value={formCin}
+                      onChange={e => setFormCin(e.target.value)}
+                      placeholder="Ex: AB123456"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">Contact (Téléphone)</label>
+                    <input
+                      type="text"
+                      value={formContact}
+                      onChange={e => setFormContact(e.target.value)}
+                      placeholder="Ex: +212 600000000"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">Adresse de résidence</label>
+                    <input
+                      type="text"
+                      value={formAdresse}
+                      onChange={e => setFormAdresse(e.target.value)}
+                      placeholder="Ex: Quartier Smaïla, Settat, Maroc"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                    />
+                  </div>
+                </div>
               </div>
 
+              {/* SECTION 3: CONTRAT & BANQUE */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Département <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formDept}
-                  onChange={e => setFormDept(e.target.value)}
-                  placeholder="Ex: R&D, IT, Finance, RH…"
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
-                  required
-                />
+                <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3 pb-1 border-b border-gray-100">
+                  3. Contrat & Coordonnées Bancaires
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">Type de contrat</label>
+                    <select
+                      value={formTypeContrat}
+                      onChange={e => setFormTypeContrat(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    >
+                      <option value="CDI">CDI (Indéterminé)</option>
+                      <option value="CDD">CDD (Déterminé)</option>
+                      <option value="Stage">Stage</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">Date de début de contrat</label>
+                    <input
+                      type="date"
+                      value={formDateDebutContrat}
+                      onChange={e => setFormDateDebutContrat(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">Durée du contrat (en mois)</label>
+                    <input
+                      type="number"
+                      value={formDureeContrat}
+                      onChange={e => setFormDureeContrat(e.target.value)}
+                      placeholder="Ex: 6 (si CDD/Stage, laisser vide si CDI)"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">RIB (Coordonnées Bancaires - AES-256)</label>
+                    <input
+                      type="text"
+                      value={formRib}
+                      onChange={e => setFormRib(e.target.value)}
+                      placeholder="FR76 3000 2000 1000 2345 6789 123"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 font-mono"
+                    />
+                  </div>
+                </div>
               </div>
 
+              {/* SECTION 4: MÉDIAS ET SIGNATURE */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">Coordonnées bancaires (RIB)</label>
-                <input
-                  type="text"
-                  value={formRib}
-                  onChange={e => setFormRib(e.target.value)}
-                  placeholder="FR76 3000 2000 1000 2345 6789 123"
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 font-mono"
-                />
+                <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3 pb-1 border-b border-gray-100">
+                  4. Photo & Signature Numérique
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">URL de la photo de profil</label>
+                    <input
+                      type="text"
+                      value={formPhotoUrl}
+                      onChange={e => setFormPhotoUrl(e.target.value)}
+                      placeholder="Ex: https://storage.nexus.com/profiles/photo.jpg"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1.5">Signature électronique (Empreinte/Hash)</label>
+                    <input
+                      type="text"
+                      value={formSignatureNumerique}
+                      onChange={e => setFormSignatureNumerique(e.target.value)}
+                      placeholder="Ex: hash_signature_abc123"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 font-mono"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t border-gray-100 shrink-0">
                 <button
                   type="button"
                   onClick={handleCloseForm}

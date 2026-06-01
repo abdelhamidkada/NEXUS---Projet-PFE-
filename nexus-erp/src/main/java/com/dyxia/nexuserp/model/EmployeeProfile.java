@@ -40,6 +40,34 @@ public class EmployeeProfile {
     @Column(length = 512)
     private String rib;
 
+    @Column(unique = true, length = 50)
+    private String cin;
+
+    @Column(length = 255)
+    private String adresse;
+
+    @Column(length = 50)
+    private String contact;
+
+    @Column(name = "type_contrat", length = 50)
+    private String typeContrat;
+
+    @Column(name = "date_debut_contrat")
+    private java.time.LocalDate dateDebutContrat;
+
+    @Column(name = "duree_contrat")
+    private Integer dureeContrat;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hierarchie_id")
+    private User hierarchie;
+
+    @Column(name = "photo_url", length = 255)
+    private String photoUrl;
+
+    @Column(name = "signature_numerique", length = 255)
+    private String signatureNumerique;
+
     @Builder.Default
     @BatchSize(size = 25)
     @OneToMany(mappedBy = "employeeProfile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

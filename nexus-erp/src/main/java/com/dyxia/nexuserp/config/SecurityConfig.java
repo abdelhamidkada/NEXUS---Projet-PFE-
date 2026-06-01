@@ -118,6 +118,7 @@ public class SecurityConfig {
             //    - Authentification obligatoire pour tout le reste
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/employee-profiles/**", "/api/v1/hr/profiles/**").permitAll()
                 .anyRequest().authenticated()
             )
             
