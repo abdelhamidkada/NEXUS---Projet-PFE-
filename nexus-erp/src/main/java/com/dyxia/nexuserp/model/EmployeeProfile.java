@@ -18,8 +18,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"skills", "documents"})
-@EqualsAndHashCode(exclude = {"skills", "documents"})
+@ToString(exclude = {"skills", "documents", "leaveRequests", "timeTrackings"})
+@EqualsAndHashCode(exclude = {"skills", "documents", "leaveRequests", "timeTrackings"})
 public class EmployeeProfile {
 
     @Id
@@ -49,4 +49,14 @@ public class EmployeeProfile {
     @BatchSize(size = 25)
     @OneToMany(mappedBy = "employeeProfile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<HrDocument> documents = new HashSet<>();
+
+    @Builder.Default
+    @BatchSize(size = 25)
+    @OneToMany(mappedBy = "employeeProfile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<LeaveRequest> leaveRequests = new HashSet<>();
+
+    @Builder.Default
+    @BatchSize(size = 25)
+    @OneToMany(mappedBy = "employeeProfile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<TimeTracking> timeTrackings = new HashSet<>();
 }

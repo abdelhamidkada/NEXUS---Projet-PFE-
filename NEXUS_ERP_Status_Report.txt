@@ -1,0 +1,288 @@
+================================================================================
+          RAPPORT D'ANALYSE ET D'AVANCEMENT DU PROJET : NEXUS ERP
+================================================================================
+Ce document présente une comparaison exhaustive entre le Cahier des Charges (CDC)
+"Plateforme de Gestion Intégrée des Talents : NEXUS ERP" (rédigé par Kada Abdelhamid)
+et l'état actuel de l'implémentation logicielle (Backend Spring Boot & Frontend React).
+
+Date du rapport : 1er Juin 2026
+Auteur de l'analyse : Antigravity (AI Pair Programmer)
+Workspace du projet : d:\Dev\NEXUS
+
+--------------------------------------------------------------------------------
+TABLE DES MATIÈRES
+--------------------------------------------------------------------------------
+1. Synthèse globale et technologies utilisées
+2. Analyse comparative détaillée par module fonctionnel
+   2.1. Authentification, Rôles & Sécurité (RBAC)
+   2.2. Module 1 : Gestion Administrative & Documents (Core HR)
+   2.3. Module 2 : Gestion du Temps & des Activités (T&A)
+   2.4. Module 3 : Performance & Analytics (OAD & IA Prédictive)
+   2.5. Module 4 : Assistant Intelligent & Ticketing (Chatbot NLP)
+3. Analyse des exigences non-fonctionnelles et de l'infrastructure
+4. Progression du projet par rapport à la planification (Sprints)
+5. Liste ordonnée des tâches prioritaires restantes (Backlog)
+
+================================================================================
+1. SYNTHÈSE GLOBALE ET TECHNOLOGIES UTILISÉES
+================================================================================
+Le projet dispose d'une base solide sur les deux plans :
+- Un backend Spring Boot (Java 17 / Maven) structuré et prêt pour l'intégration de données.
+- Un frontend React.js moderne initialisé avec Vite, Tailwind CSS et Lucide Icons.
+
+Technologies implémentées dans le code vs Exigences du CDC :
++--------------------------+------------------------------+---------------------------+
+| Couche                   | CDC (Exigences)              | État d'Implémentation     |
++--------------------------+------------------------------+---------------------------+
+| Backend                  | Spring Boot 3.2+             | OK (Spring Boot 4.x / 3.x)|
+| Base de Données          | MySQL 8.0+                   | OK (MySQL 8.0 local)      |
+| Versioning BDD           | Flyway                       | OK (Migrations V1 à V8)   |
+| Chiffrement Données      | AES-256 (AES-GCM)            | OK (AttributeEncryptor)   |
+| Sécurité / Auth          | Spring Security + JWT + RBAC  | OK (JwtAuthFilter)        |
+| Hachage Mots de Passe    | BCrypt (cost factor 12)      | OK (SecurityConfig BCrypt)|
+| Frontend                 | React 18+ + Vite             | OK (React 18+ via Vite)   |
+| Styling                  | Tailwind CSS v3              | OK (Configuration Tailwind)|
+| Gestion de l'état        | Zustand / Redux Toolkit      | OK (Zustand useAuthStore) |
+| Client HTTP              | Axios                        | OK (apiClient préconfiguré|
+| NLP / IA                 | LangChain4j + Claude API     | ABSENT                    |
+| Conteneurisation (Dev)   | Docker Desktop               | OK (docker-compose.yml)   |
++--------------------------+------------------------------+---------------------------+
+
+Taux d'avancement global estimé : ~ 33 % du projet réalisé.
+
+================================================================================
+2. ANALYSE COMPARATIVE DÉTAILLÉE PAR MODULE FONCTIONNEL
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1. AUTHENTIFICATION, RÔLES & SÉCURITÉ (RBAC) (Exigence CDC 5.1 & 7.3)
+--------------------------------------------------------------------------------
+L'authentification et l'architecture de sécurité sont déjà bien en place,
+assurant une base robuste pour la gestion des droits d'accès.
+
+CE QUI A ÉTÉ FAIT :
+- Base de Données (Flyway Migrations) :
+  * Création des tables 'users', 'roles' et 'user_roles' dans le schéma (V1__init_schema.sql).
+  * Les 5 rôles natifs définis par le CDC sont insérés : 'EMPLOYEE', 'MANAGER', 'HR_ADMIN', 'IT_ADMIN', 'DIRECTION'.
+  * Initialisation de deux utilisateurs de test pré-hachés par BCrypt dans V6__seed_users_and_roles.sql :
+    - admin@nexus.com (Rôles : HR_ADMIN + DIRECTION) -> mot de passe : admin123
+    - employee@nexus.com (Rôle : EMPLOYEE) -> mot de passe : employee123
+- Backend (Spring Boot Security) :
+  * Intégration de Spring Security 6.x configurée dans SecurityConfig.java.
+  * Implémentation du filtre d'authentification sans état (stateless) JwtAuthenticationFilter.java.
+  * Service JwtService.java gérant la génération et la validation des tokens JWT.
+  * BCryptPasswordEncoder initialisé avec un cost factor de 12 comme requis par le CDC.
+  * Gestion propre des exceptions 401 Unauthorized via un AuthenticationEntryPoint personnalisé.
+  * Contrôleur AuthController.java exposant l'API de connexion (/api/auth/login).
+- Frontend (React) :
+  * Store d'authentification global dans src/store/useAuthStore.js via Zustand.
+  * Écran de connexion (Login Page) complet et esthétique dans App.jsx, avec boutons de raccourcis démo pour tests rapides.
+  * Intercepteur Axios configuré dans src/api/apiClient.js pour injecter automatiquement le token JWT dans l'en-tête "Authorization".
+
+CE QU'IL RESTE À FAIRE (LES GAPS) :
+- Refresh Tokens & Rotation (CDC 7.3) :
+  Le CDC exige des "Refresh Tokens rotatifs". Actuellement, seule la connexion par JWT classique est implémentée. Il n'y a aucun mécanisme de stockage ou de rotation des tokens de rafraîchissement dans la base de données ou le backend.
+- Renforcement du RBAC (CDC 5.1) :
+  Bien que les rôles soient présents, la sécurité des contrôleurs est encore lâche. La validation des statuts de congés s'appuie sur le rôle déclaré dans le payload de requête au lieu de s'appuyer de manière sécurisée sur les autorités du JWT (@PreAuthorize).
+- Journalisation & RGPD (CDC 7.3) :
+  Aucune fonction de minimisation de données ou de gestion de consentement/droit à l'oubli n'a été implémentée dans les couches applicatives.
+
+--------------------------------------------------------------------------------
+2.2. MODULE 1 : GESTION ADMINISTRATIVE & DOCUMENTS (CORE HR) (Exigence CDC 5.2)
+--------------------------------------------------------------------------------
+La gestion des profils est partiellement opérationnelle, mais le coffre-fort numérique reste à l'état de squelette.
+
+CE QUI A ÉTÉ FAIT :
+- Schéma de Données (Flyway Migrations) :
+  * Table 'employee_profiles' créée (V2__create_employee_profile_table.sql).
+  * Table 'skills' et table d'association 'employee_skills' créées avec un check de niveau entre 1 et 5 (V3__create_skills_tables.sql).
+  * Table 'hr_documents' créée pour le coffre-fort numérique avec statut de signature (V5__create_documents_table.sql).
+  * Seeding d'un profil Responsable RH et d'un profil Ingénieur Logiciel (V8__seed_profiles_leaves_and_tracking.sql).
+- Backend (Spring Boot Core) :
+  * Entité EmployeeProfile.java incluant les relations vers Skills, Documents, LeaveRequests et TimeTrackings.
+  * AttributeEncryptor.java : Chiffrement AES-GCM-256 avec vecteur d'initialisation (IV) dynamique pour sécuriser les données sensibles de la base de données.
+  * Utilisation de l'AttributeEncryptor sur le champ 'rib' de la table 'employee_profiles'.
+  * EmployeeProfileService.java et EmployeeProfileController.java : Opérations CRUD complètes sécurisées par @PreAuthorize("hasAnyRole('HR_ADMIN', 'DIRECTION')") pour la création et suppression.
+- Frontend (React) :
+  * Vue complète sous forme de tableau affichant les collaborateurs.
+  * Barre de recherche globale et filtrage par département.
+  * Formulaire de création et modification (Modal) avec prise en charge du RIB.
+  * Drawer latéral 360° affichant les compétences et la liste des documents du collaborateur sélectionné.
+
+CE QU'IL RESTE À FAIRE (LES GAPS) :
+- Données d'identité manquantes (CDC 5.2) :
+  Le CDC requiert le CIN, l'adresse, le contact, les informations de contrat (type, date, durée, affectation hiérarchique), la photo et la signature électronique. Ces colonnes ne sont pas définies dans la base de données, ni dans les entités Java, ni dans les DTOs ou les formulaires du frontend.
+- API du coffre-fort numérique (Vault API) (CDC 5.2) :
+  Il n'existe actuellement aucun service ou contrôleur backend pour uploader des documents, les télécharger ou les supprimer physiquement sur le disque.
+- Moteur de génération automatique de PDF (CDC 5.2) :
+  Aucune bibliothèque de génération PDF (type iText ou OpenPDF) n'est configurée pour créer dynamiquement les attestations de travail ou certificats de salaire à la demande.
+- Workflow des demandes administratives (CDC 5.2) :
+  Il manque les services et tables pour suivre le workflow de demandes administratives d'attestations et de modification de données (avec gestion des SLAs associés de 24h, 48h, 72h).
+- Interface Utilisateur (UI) du Coffre-fort :
+  Dans le frontend, la section "Documents RH" affiche un écran "Espace en cours de développement". Les documents sont uniquement visibles en lecture seule dans le tiroir d'un profil, sans interface de téléversement, de demande ou de signature.
+
+--------------------------------------------------------------------------------
+2.3. MODULE 2 : GESTION DU TEMPS & DES ACTIVITÉS (T&A) (Exigence CDC 5.3)
+--------------------------------------------------------------------------------
+La pointeuse numérique est opérationnelle au niveau du frontend et du backend,
+mais le workflow de congés manque d'intégration graphique et de fonctionnalités clés.
+
+CE QUI A ÉTÉ FAIT :
+- Schéma de Données (Flyway Migrations) :
+  * Table 'leave_requests' avec colonnes start_date, end_date, type, status, reason et manager_comment.
+  * Table 'time_trackings' avec coordonnées de géolocalisation (latitude/longitude), type (CHECK_IN/CHECK_OUT) et timestamp (V7__create_leave_requests_and_time_trackings_tables.sql).
+- Backend (Spring Boot T&A) :
+  * Entités TimeTracking.java et LeaveRequest.java.
+  * Moteur de calcul du temps de travail journalier (TimeCalculationService.java) calculant les heures normales et supplémentaires basées sur le standard de 7 heures par jour.
+  * Pointage numérique avec géolocalisation enregistrable (/api/v1/tracking).
+  * Machine à état stricte implémentée dans LeaveRequestServiceImpl.java :
+    - PENDING -> VALIDATED_N1 (par le MANAGER) ou REJECTED (par le MANAGER)
+    - VALIDATED_N1 -> PROCESSED_HR (par l'administrateur RH - HR_ADMIN)
+  * Endpoints pour soumettre une demande et changer son statut (LeaveRequestController.java).
+- Frontend (React) :
+  * Composant interactif TimePunchCard.jsx complet et élégant.
+  * Horloge en temps réel, bouton géant dynamique (Check-In / Check-Out) avec effet d'onde visuelle.
+  * Intégration de la géolocalisation native HTML5 avec système de repli transparent si refusée ou indisponible.
+  * Récupération automatique du rapport de la journée et mise à jour dynamique des statistiques quotidiennes (Heures travaillées, Heures sup).
+
+CE QU'IL RESTE À FAIRE (LES GAPS) :
+- Calcul des heures de nuit (CDC 5.3) :
+  Le CDC impose le calcul automatique des heures de nuit. Actuellement, le TimeCalculationService calcule uniquement les heures normales et sup, sans tenir compte des plages horaires de nuit.
+- Rapport mensuel automatique pour la paie (CDC 5.3) :
+  Il n'y a pas d'interface ni d'API backend permettant d'exporter les résumés mensuels de présence pour l'administration de la paie (pas d'export Excel/PDF).
+- Pointage par QR Code (CDC 5.3) :
+  Aucun lecteur de QR Code (caméra frontend) ni générateur de QR Code n'a été développé.
+- Interface Utilisateur (UI) pour la gestion des congés (CDC 5.3) :
+  Dans l'application React, il n'y a aucun composant graphique permettant aux employés de demander un congé ou aux managers de valider les demandes en attente. La section "Temps & Présences" n'affiche que la pointeuse.
+- Système de Notifications (CDC 5.3) :
+  Le circuit de validation à 5 étapes requiert des alertes (push ou email) pour le Manager et la RH. Actuellement, aucun service d'envoi d'e-mail (JavaMailSender) ni de notification push n'est configuré dans le backend.
+
+--------------------------------------------------------------------------------
+2.4. MODULE 3 : PERFORMANCE & ANALYTICS (OAD & IA PRÉDICTIVE) (Exigence CDC 5.4)
+--------------------------------------------------------------------------------
+Ce module est totalement absent de l'implémentation actuelle.
+
+CE QUI A ÉTÉ FAIT :
+- Rien à ce jour.
+
+CE QU'IL RESTE À FAIRE (LES GAPS ENTIERS) :
+- Tableau de bord Collaborateur (KPIs) :
+  * Calcul et affichage du taux de présence, soldes de congés, et objectifs atteints.
+- Console Manager :
+  * Vue de classement de performance d'équipe.
+  * Heatmap de présence et de patterns d'absences.
+  * Exports de rapports en PDF et Excel.
+- Intégration IA / Algorithmes prédictifs :
+  * Prédiction d'attrition (Random Forest).
+  * Besoins en formation (K-Means).
+  * Prévision des pics d'absences (LSTM).
+  * Note technique : Bien que le CDC décrive ces algorithmes, il faudra décider si l'exécution se fera via un microservice Python dédié (Flask/FastAPI) ou directement dans Spring Boot (si utilisation de bibliothèques Java comme Smile ou Weka), puis concevoir le flux de données nécessaire.
+- Interface Frontend :
+  * Remplacer le message d'attente sur la page "Tableau de bord" par un dashboard analytique complet intégrant des graphiques interactifs (par exemple, avec Chart.js ou Recharts).
+
+--------------------------------------------------------------------------------
+2.5. MODULE 4 : ASSISTANT INTELLIGENT & TICKETING (CHATBOT NLP) (Exigence CDC 5.5)
+--------------------------------------------------------------------------------
+Ce module est totalement absent de l'implémentation actuelle.
+
+CE QUI A ÉTÉ FAIT :
+- Rien à ce jour.
+
+CE QU'IL RESTE À FAIRE (LES GAPS ENTIERS) :
+- Intégration NLP & LangChain4j (CDC 5.5) :
+  * Ajout des dépendances LangChain4j dans le pom.xml.
+  * Configuration de la connexion avec l'API Claude d'Anthropic.
+  * Création du service d'assistant conversationnel (Chatbot) capable d'interroger la base de données Spring Data (via RAG ou outils d'agent) pour récupérer le solde de congés d'un employé.
+- Système de Ticketing avec gestion des SLAs (CDC 5.5) :
+  * Création du schéma SQL pour les tickets (table 'tickets' avec id, categorie, description, statut, date_creation, sla_limite, affectation).
+  * Création des entités Java, des repositories, des services et des contrôleurs pour gérer le cycle de vie des tickets (IT, RH).
+  * Logique de surveillance automatique et d'escalade des tickets hors SLA.
+- Interface Frontend :
+  * Développement d'un widget de chat flottant persistant permettant d'échanger avec l'assistant IA.
+  * Interface de création de tickets et console de support technique pour les rôles IT_ADMIN et HR_ADMIN.
+
+================================================================================
+3. ANALYSE DES EXIGENCES NON-FONCTIONNELLES ET DE L'INFRASTRUCTURE
+================================================================================
+
+CE QUI A ÉTÉ FAIT :
+- Migrations Flyway :
+  La structure de versioning de la base de données MySQL est impeccable avec l'utilisation de migrations Flyway numérotées séquentiellement dans src/main/resources/db/migration (de V1 à V8).
+- Environnement local :
+  Fichier docker-compose.yml présent à la racine pour lancer facilement un conteneur MySQL 8.0 préconfiguré avec les ports et identifiants du projet.
+- Structure de base :
+  Projet structuré en packages clairs côté Spring Boot (config, controller, model, repository, service, dto, exception, util).
+
+CE QU'IL RESTE À FAIRE (LES GAPS) :
+- Couverture de tests > 80% (CDC 4.2 & Semaine 6) :
+  Actuellement, le projet ne possède que le test contextLoad auto-généré de Spring Boot. Il n'y a pas de tests unitaires (JUnit/Mockito) pour les services ou les contrôleurs, ni de tests d'intégration.
+- Documentation Swagger/OpenAPI (CDC 7.2) :
+  Swagger n'est pas intégré dans le pom.xml. L'API REST ne dispose pas de documentation interactive auto-générée à ce stade.
+- Pipeline CI/CD et déploiement Docker (CDC 6 & Semaine 6) :
+  Il n'y a pas de fichiers de workflows GitHub Actions (.github/workflows) ni de Dockerfiles individuels pour le build et la conteneurisation indépendante du frontend et du backend.
+
+================================================================================
+4. PROGRESSION DU PROJET PAR RAPPORT À LA PLANIFICATION (SPRINTS)
+================================================================================
+Sur la base de la planification sur 6 semaines définie dans la section 6 du CDC,
+voici le bilan d'avancement des livrables :
+
+- SEMAINE 1 : Conception, Schéma BDD & Spring Boot Security Init
+  * Statut : 90 % FAIT.
+  * Manque : Intégration complète de la configuration JWT dans les environnements et logs.
+
+- SEMAINE 2 : Module Core HR, Profils 360°, AES-256 RIB, Digital Vault & React
+  * Statut : 40 % FAIT.
+  * Manque : Colonnes d'identité du profil (CIN, adresse, etc.), API du coffre-fort numérique, téléversement de fichiers, moteur de génération automatique de PDF, interface de gestion documentaire.
+
+- SEMAINE 3 : Module T&A, Moteurs de calcul des heures, Règles de congés & Validation
+  * Statut : 50 % FAIT.
+  * Manque : Calcul des heures de nuit, exports Excel/PDF pour la paie, option pointage QR Code, interface utilisateur de demande et de validation de congés, système de notifications par email.
+
+- SEMAINE 4 : Module Analytics OAD, Dashboard KPIs, Modèles IA (Attrition, formation, absences)
+  * Statut : 0 % FAIT (Non démarré).
+
+- SEMAINE 5 : Module Assistant Intelligent, Chatbot NLP (LangChain4j/Claude), Ticketing & SLAs
+  * Statut : 0 % FAIT (Non démarré).
+
+- SEMAINE 6 : Tests unitaires (>80%), Docker, CI/CD Actions, Swagger & Recette
+  * Statut : 20 % FAIT.
+  * Manque : Création des tests automatisés, configuration CI/CD, documentation OpenAPI/Swagger.
+
+================================================================================
+5. LISTE ORDONNÉE DES TÂCHES PRIORITAIRES RESTANTES (BACKLOG)
+================================================================================
+Pour finaliser avec succès ce projet de PFE, voici l'ordre technique recommandé pour
+reprendre les développements :
+
+1. COMPLÉTER LE CORE HR (Module 1) :
+   - Ajouter les champs manquants dans l'entité EmployeeProfile (CIN, adresse, contact, contrat, photo, signature).
+   - Créer une migration Flyway V9 pour altérer la table 'employee_profiles'.
+   - Mettre à jour les DTOs et le formulaire React d'édition de profil.
+
+2. DÉVELOPPER L'API DU COFFRE-FORT NUMÉRIQUE (Module 1) :
+   - Écrire un DocumentController et un service de stockage physique/Cloud des documents téléchargés.
+   - Ajouter une dépendance PDF (type OpenPDF) pour générer des certificats de travail et attestations à la demande.
+   - Intégrer l'upload et le téléchargement côté React dans l'onglet Documents.
+
+3. FINALISER LE TIME & ATTENDANCE (Module 2) :
+   - Ajouter la détection des heures de nuit dans le TimeCalculationService.
+   - Créer l'interface de demandes de congés et le panneau de validation pour les managers dans React.
+   - Configurer Spring Boot Starter Mail pour notifier les managers lors des soumissions de demandes.
+
+4. BÂTIR LE MODULE CHATBOT & TICKETING (Module 4 - Plus simple à intégrer avant l'IA OAD) :
+   - Ajouter la dépendance LangChain4j, configurer l'API Anthropic/Claude.
+   - Implémenter le service d'agent conversationnel pour répondre sur les soldes de congés.
+   - Créer le schéma et le module CRUD de Ticketing.
+   - Développer le widget de chat côté React.
+
+5. CONSTRUIRE LE MODULE IA PRÉDICTIVE & DASHBOARDS (Module 3 - Étape clé OAD) :
+   - Configurer un script Python ou intégrer une solution Java pour faire tourner les modèles prédictifs (Random Forest, K-Means, LSTM).
+   - Exposer les scores d'attrition et de besoins en formation via des endpoints d'analytics.
+   - Intégrer Recharts dans React pour concevoir le "Tableau de bord" et la console manager (KPIs, heatmap, classement performance).
+
+6. ASSURER LA QUALITÉ ET LE DÉPLOIEMENT (Module 6) :
+   - Écrire des tests unitaires mockés pour atteindre la couverture de 80%.
+   - Intégrer Springdoc-openapi pour Swagger.
+   - Écrire les Dockerfiles de production et la configuration CI/CD GitHub Actions.
+================================================================================
