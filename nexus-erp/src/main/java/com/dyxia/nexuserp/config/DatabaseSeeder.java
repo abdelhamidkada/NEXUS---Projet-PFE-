@@ -29,6 +29,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final SkillRepository skillRepository;
     private final EmployeeSkillRepository employeeSkillRepository;
     private final NotificationRepository notificationRepository;
+    private final MonthlyCycleRepository monthlyCycleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -40,6 +41,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         notificationRepository.deleteAll();
         leaveRequestRepository.deleteAll();
         timeTrackingRepository.deleteAll();
+        monthlyCycleRepository.deleteAll();
         employeeSkillRepository.deleteAll();
         skillRepository.deleteAll();
         employeeProfileRepository.deleteAll();
@@ -332,6 +334,26 @@ public class DatabaseSeeder implements CommandLineRunner {
         );
 
         System.out.println(">>> SEEDING REUSSI : 5 demandes de congés transactionnelles insérées.");
+
+        // Seeding monthly cycles for testing
+        System.out.println(">>> Insertion des cycles mensuels de test...");
+        // Kada: May 16 to June 15 (validated, not yet processed)
+        monthlyCycleRepository.save(MonthlyCycle.builder()
+                .employeeProfile(epKada)
+                .startDate(LocalDate.of(2026, 5, 16))
+                .endDate(LocalDate.of(2026, 6, 15))
+                .validatedAsWorked(true)
+                .processedForAccrual(false)
+                .build());
+
+        // Julien: May 16 to June 15 (not validated yet)
+        monthlyCycleRepository.save(MonthlyCycle.builder()
+                .employeeProfile(epMorel)
+                .startDate(LocalDate.of(2026, 5, 16))
+                .endDate(LocalDate.of(2026, 6, 15))
+                .validatedAsWorked(false)
+                .processedForAccrual(false)
+                .build());
 
         // Seeding notifications
         System.out.println(">>> Insertion des notifications de test...");

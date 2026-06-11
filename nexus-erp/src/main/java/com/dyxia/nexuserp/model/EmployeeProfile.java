@@ -103,6 +103,10 @@ public class EmployeeProfile {
     private String signatureNumerique;
 
     @Builder.Default
+    @Column(name = "leave_balance")
+    private Double leaveBalance = 30.0;
+
+    @Builder.Default
     @BatchSize(size = 25)
     @OneToMany(mappedBy = "employeeProfile", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<EmployeeSkill> skills = new HashSet<>();

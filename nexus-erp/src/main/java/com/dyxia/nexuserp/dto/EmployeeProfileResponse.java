@@ -55,6 +55,7 @@ public class EmployeeProfileResponse {
     private String employmentFraction; // [P]
     private String seniorityLevel;    // [P]
     private String signatureNumerique; // [P]
+    private Double leaveBalance;       // [E]
 
     // ── Collections ────────────────────────────────────────────────────────
     private Set<EmployeeSkillResponse> skills;

@@ -1,0 +1,1033 @@
+================================================================================
+              RAPPORT TECHNIQUE COMPLET — NEXUS ERP
+        Plateforme de Gestion Intégrée des Talents
+================================================================================
+
+  Projet de Fin d'Études (PFE)
+  Étudiant       : Kada Abdelhamid
+  Entreprise     : DyxIA
+  Date           : 10 Juin 2026
+  Workspace      : d:\Dev\NEXUS
+
+================================================================================
+                        TABLE DES MATIÈRES
+================================================================================
+
+  1.  Présentation du projet
+  2.  Architecture technique globale
+  3.  Technologies et dépendances
+  4.  Base de données et schéma relationnel
+  5.  Sécurité et authentification
+  6.  Module Authentification & RBAC
+  7.  Module 1 — Gestion Administrative & Core HR
+  8.  Module 2 — Gestion du Temps & des Activités
+  9.  Module 3 — Performance & Analytics (OAD & IA)
+  10. Module 4 — Assistant Intelligent & Ticketing
+  11. Infrastructure & DevOps
+  12. Inventaire complet des fichiers
+  13. APIs REST — Documentation des endpoints
+  14. Conformité avec le Cahier des Charges
+  15. Perspectives d'évolution
+
+
+================================================================================
+1. PRÉSENTATION DU PROJET
+================================================================================
+
+1.1 Contexte
+────────────
+
+  NEXUS ERP est une plateforme web de gestion intégrée des ressources
+  humaines (SIRH) développée dans le cadre d'un Projet de Fin d'Études
+  (PFE) au sein de l'entreprise DyxIA. La plateforme vise à centraliser
+  et automatiser l'ensemble des processus RH d'une organisation, depuis
+  la gestion des profils employés jusqu'à l'analyse prédictive par
+  intelligence artificielle.
+
+
+1.2 Objectifs fonctionnels
+──────────────────────────
+
+  Le cahier des charges (CDC) définit 5 modules fonctionnels principaux :
+
+  ┌────┬──────────────────────────────┬──────────────────────────────────────────────────────────────────┐
+  │ #  │ Module                       │ Description                                                      │
+  ├────┼──────────────────────────────┼──────────────────────────────────────────────────────────────────┤
+  │ 1  │ Core HR                      │ Gestion administrative des profils 360°, coffre-fort, compétences│
+  │ 2  │ Temps & Activités (T&A)      │ Pointeuse numérique, gestion des congés, calcul des heures      │
+  │ 3  │ Performance & Analytics      │ Tableau de bord KPIs, IA prédictive (attrition, formation)       │
+  │ 4  │ Assistant Intelligent        │ Chatbot NLP (LangChain4j + Claude), ticketing avec SLAs          │
+  │ 5  │ Authentification & RBAC      │ Sécurité JWT, 5 rôles natifs, chiffrement AES-256                │
+  └────┴──────────────────────────────┴──────────────────────────────────────────────────────────────────┘
+
+
+1.3 Périmètre technique
+────────────────────────
+
+  ┌────────────────────────────────────────────────────────────┐
+  │                   CLIENT (Navigateur)                       │
+  │   React 19 + Vite 8 │ Tailwind CSS 3.4                    │
+  │   Zustand 5 · Axios · Recharts 3.8 · Lucide React         │
+  └──────────────────────┬─────────────────────────────────────┘
+                         │ REST API (JSON)
+                         │ Authorization: Bearer JWT
+  ┌──────────────────────▼─────────────────────────────────────┐
+  │               SERVEUR D'APPLICATIONS                       │
+  │   Spring Boot 4.x │ Spring Security 6 + JWT               │
+  │   Spring Data JPA + Flyway                                 │
+  └──────────────────────┬─────────────────────────────────────┘
+                         │ JPA / Hibernate
+                         │ AES-256 transparent
+  ┌──────────────────────▼─────────────────────────────────────┐
+  │                  BASE DE DONNÉES                           │
+  │   MySQL 8.0 (Docker Container)                             │
+  └────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+2. ARCHITECTURE TECHNIQUE GLOBALE
+================================================================================
+
+2.1 Architecture logicielle
+───────────────────────────
+
+  Le projet adopte une architecture monolithique modulaire avec
+  séparation claire frontend/backend.
+
+  FRONTEND (mon-app-react/)
+  ├── main.jsx ..................... Point d'entrée React + ReactDOM
+  ├── App.jsx ...................... Router + Layout + Profils (1232 lignes)
+  ├── store/useAuthStore.js ........ Zustand (token, user, login/logout)
+  ├── api/apiClient.js ............. Axios + intercepteurs JWT
+  └── components/ .................. 7 composants métier
+       ├── TimePunchCard.jsx
+       ├── LeaveRequestEmployeeView.jsx
+       ├── LeaveManagerDashboard.jsx
+       ├── DocumentsVaultView.jsx
+       ├── SkillsMatrixView.jsx
+       ├── AIAnalyticsDashboard.jsx
+       └── SmartAssistantWidget.jsx
+
+  BACKEND (nexus-erp/)
+  └── src/main/java/com/dyxia/nexuserp/
+       ├── NexusErpApplication.java .... Point d'entrée Spring Boot
+       ├── config/ ..................... Sécurité + Filtre JWT
+       │    ├── SecurityConfig.java
+       │    └── JwtAuthenticationFilter.java
+       ├── controller/ ................. 4 REST Controllers
+       │    ├── AuthController.java
+       │    ├── EmployeeProfileController.java
+       │    ├── LeaveRequestController.java
+       │    └── TimeTrackingController.java
+       ├── service/ .................... 5 Services métier
+       │    ├── JwtService.java
+       │    ├── EmployeeProfileService.java
+       │    ├── LeaveRequestService.java (interface)
+       │    ├── LeaveRequestServiceImpl.java
+       │    └── TimeCalculationService.java
+       ├── repository/ ................. 5 Repositories JPA
+       │    ├── UserRepository.java
+       │    ├── RoleRepository.java
+       │    ├── EmployeeProfileRepository.java
+       │    ├── LeaveRequestRepository.java
+       │    └── TimeTrackingRepository.java
+       ├── model/ ...................... 11 Entités/Enums
+       │    ├── User.java (implements UserDetails)
+       │    ├── Role.java
+       │    ├── EmployeeProfile.java
+       │    ├── EmployeeSkill.java + EmployeeSkillId.java
+       │    ├── Skill.java
+       │    ├── HrDocument.java + DocumentType.java
+       │    ├── LeaveRequest.java + LeaveStatus.java + LeaveType.java
+       │    └── TimeTracking.java + TrackingType.java
+       ├── dto/ ........................ 7 DTOs
+       │    ├── LoginRequest.java / AuthResponse.java
+       │    ├── EmployeeProfileRequest.java / EmployeeProfileResponse.java
+       │    ├── EmployeeSkillResponse.java / HrDocumentResponse.java
+       │    └── DailyTimeReport.java
+       ├── exception/ .................. 3 Exception Handlers
+       │    ├── GlobalExceptionHandler.java
+       │    ├── ResourceNotFoundException.java
+       │    └── InvalidLeaveTransitionException.java
+       └── util/ ....................... 2 Utilitaires
+            ├── AttributeEncryptor.java (AES-GCM-256)
+            └── PasswordHasherUtil.java
+
+
+================================================================================
+3. TECHNOLOGIES ET DÉPENDANCES
+================================================================================
+
+3.1 Backend (Spring Boot)
+─────────────────────────
+
+  ┌─────────────────────────────────┬───────────┬──────────────────────────────────────┐
+  │ Dépendance                      │ Version   │ Rôle                                 │
+  ├─────────────────────────────────┼───────────┼──────────────────────────────────────┤
+  │ Spring Boot Starter Parent      │ 4.0.6     │ Framework principal                  │
+  │ Spring Boot Starter Data JPA    │ —         │ ORM Hibernate + JPA                  │
+  │ Spring Boot Starter Security    │ —         │ Authentification & autorisation       │
+  │ Spring Boot Starter WebMVC      │ —         │ API REST                             │
+  │ Spring Boot Starter Flyway      │ —         │ Migrations de schéma BDD             │
+  │ MySQL Connector/J               │ Runtime   │ Driver JDBC MySQL                    │
+  │ Flyway MySQL                    │ —         │ Support MySQL pour Flyway            │
+  │ JJWT (api/impl/jackson)         │ 0.12.6    │ Génération/validation JWT            │
+  │ Lombok                          │ Compile   │ Réduction du boilerplate Java        │
+  │ Java (JDK)                      │ 17        │ Version du JDK                       │
+  └─────────────────────────────────┴───────────┴──────────────────────────────────────┘
+
+
+3.2 Frontend (React)
+────────────────────
+
+  ┌─────────────────────────────────┬───────────┬──────────────────────────────────────┐
+  │ Dépendance                      │ Version   │ Rôle                                 │
+  ├─────────────────────────────────┼───────────┼──────────────────────────────────────┤
+  │ React                           │ 19.2.6    │ Bibliothèque UI                      │
+  │ React DOM                       │ 19.2.6    │ Rendu DOM                            │
+  │ Vite                            │ 8.0.12    │ Bundler + dev server                 │
+  │ Tailwind CSS                    │ 3.4.19    │ Framework CSS utility-first          │
+  │ Zustand                         │ 5.0.13    │ Gestion d'état global                │
+  │ Axios                           │ 1.16.1    │ Client HTTP                          │
+  │ Recharts                        │ 3.8.1     │ Graphiques interactifs               │
+  │ Lucide React                    │ 1.16.0    │ Icônes SVG modernes                  │
+  │ PostCSS                         │ 8.5.15    │ Transformations CSS                  │
+  │ Autoprefixer                    │ 10.5.0    │ Compatibilité navigateurs            │
+  └─────────────────────────────────┴───────────┴──────────────────────────────────────┘
+
+
+================================================================================
+4. BASE DE DONNÉES ET SCHÉMA RELATIONNEL
+================================================================================
+
+4.1 Migrations Flyway (V1 → V9)
+────────────────────────────────
+
+  Le schéma MySQL est géré par Flyway avec 9 migrations séquentielles :
+
+  ┌─────┬──────────────────────────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
+  │ Ver.│ Fichier                                                      │ Contenu                                                    │
+  ├─────┼──────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
+  │ V1  │ V1__init_schema.sql                                          │ Tables users, roles, user_roles + seed 5 rôles natifs      │
+  │ V2  │ V2__create_employee_profile_table.sql                        │ Table employee_profiles (user_id, job_title, department)    │
+  │ V3  │ V3__create_skills_tables.sql                                 │ Tables skills et employee_skills (niveau 1-5 CHECK)        │
+  │ V4  │ V4__add_rib_to_profile.sql                                   │ Ajout colonne rib (VARCHAR 512, chiffrée AES-256)           │
+  │ V5  │ V5__create_documents_table.sql                               │ Table hr_documents (type, path, signature, upload_date)     │
+  │ V6  │ V6__seed_users_and_roles.sql                                 │ Seed : admin@nexus.com + employee@nexus.com (BCrypt)        │
+  │ V7  │ V7__create_leave_requests_and_time_trackings_tables.sql      │ Tables leave_requests (UUID PK) et time_trackings (géoloc)  │
+  │ V8  │ V8__seed_profiles_leaves_and_tracking.sql                    │ Seed de profils demo (Responsable RH + Ingénieur)           │
+  │ V9  │ V9__alter_employee_profiles_add_identity_fields.sql          │ Ajout colonnes : cin, adresse, contact, type_contrat, etc.  │
+  └─────┴──────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
+
+
+4.2 Modèle Entité-Relation
+───────────────────────────
+
+  USERS ───────────────────────────────────────────────────────────────
+  │ id (BIGINT, PK, AUTO_INCREMENT)
+  │ email (VARCHAR 100, UNIQUE, NOT NULL)
+  │ password_hash (VARCHAR 255, NOT NULL)
+  │ first_name (VARCHAR 50, NOT NULL)
+  │ last_name (VARCHAR 50, NOT NULL)
+  │ is_active (BOOLEAN, DEFAULT TRUE)
+  └──┬── 1:N → USER_ROLES
+     └── 1:1 → EMPLOYEE_PROFILES
+
+  ROLES ───────────────────────────────────────────────────────────────
+  │ id (BIGINT, PK)
+  │ name (VARCHAR 50, UNIQUE)
+  │   Valeurs : EMPLOYEE | MANAGER | HR_ADMIN | IT_ADMIN | DIRECTION
+  └──── 1:N → USER_ROLES
+
+  USER_ROLES ──────────────────────────────────────────────────────────
+  │ user_id (BIGINT, FK → users.id, ON DELETE CASCADE)
+  │ role_id (BIGINT, FK → roles.id, ON DELETE CASCADE)
+  │ PRIMARY KEY (user_id, role_id)
+
+  EMPLOYEE_PROFILES ───────────────────────────────────────────────────
+  │ id (BIGINT, PK, AUTO_INCREMENT)
+  │ user_id (BIGINT, FK UNIQUE → users.id, NOT NULL)
+  │ job_title (VARCHAR 100)
+  │ department (VARCHAR 100)
+  │ rib (VARCHAR 512) ................... Chiffré AES-256-GCM
+  │ cin (VARCHAR 50, UNIQUE) ............ Carte d'identité
+  │ adresse (VARCHAR 255)
+  │ contact (VARCHAR 50)
+  │ type_contrat (VARCHAR 50) ........... CDI | CDD | Stage
+  │ date_debut_contrat (DATE)
+  │ duree_contrat (INT)
+  │ hierarchie_id (BIGINT, FK → users.id, ON DELETE SET NULL)
+  │ photo_url (VARCHAR 255)
+  │ signature_numerique (VARCHAR 255)
+  └──┬── 1:N → EMPLOYEE_SKILLS
+     ├── 1:N → HR_DOCUMENTS
+     ├── 1:N → LEAVE_REQUESTS
+     └── 1:N → TIME_TRACKINGS
+
+  SKILLS ──────────────────────────────────────────────────────────────
+  │ id (BIGINT, PK)
+  │ name (VARCHAR)
+  │ category (VARCHAR)
+  └──── 1:N → EMPLOYEE_SKILLS
+
+  EMPLOYEE_SKILLS ─────────────────────────────────────────────────────
+  │ employee_profile_id (BIGINT, FK → employee_profiles.id)
+  │ skill_id (BIGINT, FK → skills.id)
+  │ proficiency_level (INT, CHECK 1-5)
+  │ PRIMARY KEY (employee_profile_id, skill_id)
+
+  HR_DOCUMENTS ────────────────────────────────────────────────────────
+  │ id (BIGINT, PK)
+  │ employee_profile_id (BIGINT, FK → employee_profiles.id)
+  │ document_type (VARCHAR)
+  │ file_path (VARCHAR)
+  │ is_signed (BOOLEAN)
+  │ upload_date (DATE)
+
+  LEAVE_REQUESTS ──────────────────────────────────────────────────────
+  │ id (VARCHAR 36, PK) ................ UUID
+  │ start_date (DATE, NOT NULL)
+  │ end_date (DATE, NOT NULL)
+  │ type (VARCHAR 50, NOT NULL)
+  │   Valeurs : PAID | SICK | UNPAID | MATERNITY_PATERNITY
+  │ status (VARCHAR 50, NOT NULL)
+  │   Valeurs : PENDING | VALIDATED_N1 | PROCESSED_HR | REJECTED
+  │ reason (VARCHAR 500)
+  │ manager_comment (VARCHAR 500)
+  │ employee_profile_id (BIGINT, FK → employee_profiles.id, CASCADE)
+  │ INDEX idx_leave_requests_employee ON (employee_profile_id)
+
+  TIME_TRACKINGS ──────────────────────────────────────────────────────
+  │ id (VARCHAR 36, PK) ................ UUID
+  │ timestamp (TIMESTAMP, NOT NULL)
+  │ type (VARCHAR 50, NOT NULL)
+  │   Valeurs : CHECK_IN | CHECK_OUT
+  │ latitude (DOUBLE)
+  │ longitude (DOUBLE)
+  │ employee_profile_id (BIGINT, FK → employee_profiles.id, CASCADE)
+  │ INDEX idx_time_trackings_employee ON (employee_profile_id)
+
+
+================================================================================
+5. SÉCURITÉ ET AUTHENTIFICATION
+================================================================================
+
+5.1 Architecture de sécurité — Flux d'authentification
+──────────────────────────────────────────────────────
+
+  Client React                 JwtAuthFilter        Spring Security         AuthController          JwtService            MySQL
+       │                            │                      │                       │                     │                   │
+       │─── POST /api/auth/login ──────────────────────────────────────────────►│                     │                   │
+       │    {email, password}        │                      │                       │                     │                   │
+       │                            │                      │                       │── authenticate() ──►│                   │
+       │                            │                      │── findByEmail() ──────────────────────────────────────────────►│
+       │                            │                      │◄── User (UserDetails) ────────────────────────────────────────│
+       │                            │                      │── BCrypt.matches() ───►│                     │                   │
+       │                            │                      │    (cost = 12)         │                     │                   │
+       │                            │                      │◄── Auth Success ──────│                     │                   │
+       │                            │                      │                       │── generateToken() ─►│                   │
+       │                            │                      │                       │◄── JWT (HS256, 8h) ─│                   │
+       │◄── {token: "eyJhbGci..."} ────────────────────────────────────────────│                     │                   │
+       │                            │                      │                       │                     │                   │
+       │   [Stockage localStorage   │                      │                       │                     │                   │
+       │    via Zustand persist]     │                      │                       │                     │                   │
+       │                            │                      │                       │                     │                   │
+       │─── GET /api/v1/hr/profiles ►│                      │                       │                     │                   │
+       │    [Bearer <token>]         │── extractUsername() ─────────────────────────────────────────────►│                   │
+       │                            │── isTokenValid() ────────────────────────────────────────────────►│                   │
+       │                            │◄── Valid ✓ ──────────────────────────────────────────────────────│                   │
+       │                            │── setAuthentication()►│                       │                     │                   │
+       │◄── 200 OK [Data] ─────────│                      │                       │                     │                   │
+
+
+5.2 Chiffrement AES-256-GCM
+────────────────────────────
+
+  Fichier : AttributeEncryptor.java
+  Rôle    : JPA AttributeConverter transparent pour chiffrer/déchiffrer
+            les données sensibles en base de données.
+
+  - Algorithme .... : AES/GCM/NoPadding (256 bits)
+  - IV ............ : Vecteur d'initialisation dynamique de 12 octets
+                      (généré par SecureRandom)
+  - Tag ........... : 128 bits d'authentification GCM
+  - Stockage ...... : Base64(IV || CipherText) en VARCHAR(512)
+  - Champs protégés : rib (Relevé d'Identité Bancaire)
+
+  Utilisation dans l'entité EmployeeProfile :
+
+    @Convert(converter = AttributeEncryptor.class)
+    @Column(length = 512)
+    private String rib;  // Chiffré de manière transparente en BDD
+
+
+5.3 Hachage des mots de passe
+──────────────────────────────
+
+  - Algorithme : BCrypt avec un cost factor de 12
+  - Configuration : new BCryptPasswordEncoder(12) dans SecurityConfig.java
+
+
+5.4 Configuration JWT
+─────────────────────
+
+  - Bibliothèque ......... : JJWT 0.12.6
+  - Algorithme signature . : HMAC-SHA256 (HS256)
+  - Durée de vie ......... : 8 heures (session de travail)
+  - Politique de session .. : STATELESS (pas de session serveur)
+
+
+5.5 Configuration CORS
+──────────────────────
+
+  - Origines autorisées .. : http://localhost:5173 (dev Vite)
+  - Méthodes ............. : GET, POST, PUT, DELETE, OPTIONS
+  - Headers exposés ...... : Authorization
+  - Cache preflight ...... : 1 heure
+
+
+5.6 Gestion des rôles (RBAC)
+─────────────────────────────
+
+  5 rôles natifs définis dans le CDC et insérés en V1 :
+
+  ┌────────────────┬──────────────────────────────────────────────────────────────┐
+  │ Rôle           │ Accès                                                        │
+  ├────────────────┼──────────────────────────────────────────────────────────────┤
+  │ EMPLOYEE       │ Profil personnel, pointeuse, demande de congés              │
+  │ MANAGER        │ + Validation N+1 des congés de son équipe                    │
+  │ HR_ADMIN       │ + CRUD profils, traitement RH des congés, accès complet      │
+  │ IT_ADMIN       │ + Gestion des tickets IT, support technique                  │
+  │ DIRECTION      │ + Accès analytics, KPIs, rapports décisionnels               │
+  └────────────────┴──────────────────────────────────────────────────────────────┘
+
+
+================================================================================
+6. MODULE AUTHENTIFICATION & RBAC
+================================================================================
+
+6.1 Backend
+───────────
+
+  CONTRÔLEUR : AuthController.java (60 lignes)
+
+    POST /api/auth/login
+    ├── Body    : { email: string, password: string }
+    ├── Process : AuthenticationManager → BCrypt verify → JWT generate
+    └── Response: { token: "eyJhbGciOiJIUzI1NiJ9..." }
+
+  SERVICE JWT : JwtService.java (136 lignes)
+    - generateToken(UserDetails) ... Crée un JWT signé HS256
+    - extractUsername(String token)   Extrait l'email du subject
+    - isTokenValid(token, user) .... Vérifie signature + expiration
+
+  FILTRE : JwtAuthenticationFilter.java
+    - Intercepte chaque requête HTTP
+    - Extrait le token du header Authorization: Bearer <token>
+    - Valide et injecte l'authentification dans le SecurityContextHolder
+
+
+6.2 Frontend
+────────────
+
+  STORE ZUSTAND : useAuthStore.js (47 lignes)
+    - État    : token, user, isAuthenticated
+    - Actions : login(token, user), logout()
+    - Persist : localStorage via middleware persist (clé: nexus-auth-storage)
+
+  CLIENT HTTP : apiClient.js (52 lignes)
+    - Base URL : http://localhost:8080 (configurable via VITE_API_BASE_URL)
+    - Intercepteur requête  : injection automatique Authorization: Bearer <token>
+    - Intercepteur réponse  : détection 401 → logout automatique
+    - Timeout : 10 secondes
+
+  PAGE DE CONNEXION : Intégrée dans App.jsx
+    - Formulaire email/mot de passe avec icônes Lucide
+    - 2 boutons de démonstration rapide (Admin RH / Employé)
+    - Gestion des erreurs avec toast notifications
+    - Navigation conditionnelle par rôle post-connexion
+
+
+6.3 Comptes de test pré-configurés (Seed V6)
+─────────────────────────────────────────────
+
+  ┌────────────────────────┬────────────────┬──────────────────────┬──────────────────────────────┐
+  │ Email                  │ Mot de passe   │ Rôles                │ Accès                        │
+  ├────────────────────────┼────────────────┼──────────────────────┼──────────────────────────────┤
+  │ admin@nexus.com        │ admin123       │ HR_ADMIN + DIRECTION │ Accès complet + Validation   │
+  │ employee@nexus.com     │ employee123    │ EMPLOYEE             │ Lecture seule + Mes Congés   │
+  └────────────────────────┴────────────────┴──────────────────────┴──────────────────────────────┘
+
+
+================================================================================
+7. MODULE 1 — GESTION ADMINISTRATIVE & CORE HR
+================================================================================
+CDC §5.2 — Avancement : 80%
+
+7.1 Gestion des profils employés 360°
+─────────────────────────────────────
+
+  >> BACKEND
+
+  ENTITÉ : EmployeeProfile.java (91 lignes)
+    - 14 champs dont « rib » chiffré AES-256
+    - Relations : @OneToOne User, @ManyToOne hierarchie,
+                  @OneToMany skills/documents/leaves/trackings
+    - Optimisation : @BatchSize(size = 25) sur les collections lazy
+
+  SERVICE : EmployeeProfileService.java (203 lignes)
+    - CRUD complet avec validation métier
+    - Vérification d'unicité par userId
+    - Mappage DTO sécurisé (omission du rib brut en sortie)
+    - Requête optimisée findAllWithUser() (JOIN FETCH)
+
+  CONTRÔLEUR : EmployeeProfileController.java (75 lignes)
+
+    ┌─────────┬──────────────────────────────┬──────────────────────────────────┐
+    │ Méthode │ Endpoint                     │ Description                      │
+    ├─────────┼──────────────────────────────┼──────────────────────────────────┤
+    │ POST    │ /api/v1/hr/profiles          │ Créer un profil                  │
+    │ GET     │ /api/v1/hr/profiles          │ Lister tous les profils          │
+    │ GET     │ /api/v1/hr/profiles/{id}     │ Récupérer un profil              │
+    │ PUT     │ /api/v1/hr/profiles/{id}     │ Mettre à jour un profil          │
+    │ DELETE  │ /api/v1/hr/profiles/{id}     │ Supprimer un profil              │
+    └─────────┴──────────────────────────────┴──────────────────────────────────┘
+
+  >> FRONTEND — Interface de gestion (intégrée dans App.jsx)
+
+    - Tableau des profils : nom, email, département, poste, compétences, documents
+    - 4 KPI Cards : Collaborateurs, Départements, Compétences, Documents
+    - Recherche globale : filtre temps réel sur nom, email, département, poste
+    - Filtre par département : dropdown dynamique
+    - Drawer latéral 360° avec 3 onglets :
+        * Informations : Identité (CIN, contact, adresse), Contrat, Photo & Signature
+        * Compétences  : Barres de progression avec niveaux /5
+        * Documents RH : Liste avec badges signé/en attente
+    - Modal création/modification en 4 sections :
+        1. Informations Professionnelles (userId, hiérarchie, poste, département)
+        2. Informations Personnelles (CIN, contact, adresse)
+        3. Contrat & Banque (type CDI/CDD/Stage, dates, RIB chiffré)
+        4. Photo & Signature Numérique
+
+
+7.2 Coffre-fort numérique
+─────────────────────────
+
+  COMPOSANT : DocumentsVaultView.jsx (277 lignes)
+
+  Fonctionnalités :
+    - Badge de sécurité AES-256 en en-tête
+    - Zone de drag-and-drop pour l'upload de documents
+    - Formats acceptés : PDF, PNG, JPG, DOCX (max 10 Mo)
+    - Tableau des documents : Nom, Catégorie (Contrat/Paie/Administratif),
+      Date d'ajout, Statut (Signé/À signer)
+    - Actions : Télécharger, Supprimer (avec confirmation)
+    - Barre de recherche par nom ou catégorie
+    - Badges de catégorie colorés
+
+  [!] ATTENTION : Le coffre-fort fonctionne en MODE SIMULATION (données mock).
+      Le backend DocumentController n'est pas encore implémenté.
+
+
+7.3 Matrice des compétences
+───────────────────────────
+
+  COMPOSANT : SkillsMatrixView.jsx (206 lignes)
+
+  Structure en grille 2 colonnes :
+    - Hard Skills RH : Barres de progression avec pourcentage et niveau
+        * Recrutement & Sourcing (90%), Droit du Travail (85%),
+          GPEC (80%), Gestion de la Paie (70%)
+    - Soft Skills : Badges colorés
+        * Gestion des conflits, Communication, Leadership, Écoute active
+    - Certifications actives : Cartes avec titre, organisme, année
+    - Boutons d'action : "Demander une évaluation" / "Ajouter une compétence"
+
+
+================================================================================
+8. MODULE 2 — GESTION DU TEMPS & DES ACTIVITÉS
+================================================================================
+CDC §5.3 — Avancement : 75%
+
+8.1 Pointeuse numérique
+────────────────────────
+
+  >> BACKEND
+
+  ENTITÉ : TimeTracking.java (44 lignes)
+    - Clé primaire UUID
+    - Champs : timestamp, type (CHECK_IN/CHECK_OUT), latitude, longitude
+    - Relation : @ManyToOne vers EmployeeProfile
+
+  SERVICE : TimeCalculationService.java (146 lignes)
+    - calculateDailyTime(employeeId, date) :
+        * Calcule les heures travaillées et supplémentaires
+        * Standard : 7 heures/jour (35h/semaine)
+        * Appariement CHECK_IN/CHECK_OUT avec détection de pointage manquant
+        * Arrondi à 2 décimales
+    - recordTimeTracking(employeeId, tracking) :
+        * Enregistre un pointage avec timestamp automatique si absent
+
+  CONTRÔLEUR : TimeTrackingController.java (53 lignes)
+
+    ┌─────────┬────────────────────────────────────────────────┬──────────────────────────────────┐
+    │ Méthode │ Endpoint                                       │ Description                      │
+    ├─────────┼────────────────────────────────────────────────┼──────────────────────────────────┤
+    │ POST    │ /api/v1/tracking?employeeId={id}               │ Enregistrer un pointage          │
+    │ GET     │ /api/v1/tracking/report/{id}?date={yyyy-MM-dd} │ Rapport journalier               │
+    └─────────┴────────────────────────────────────────────────┴──────────────────────────────────┘
+
+  >> FRONTEND
+
+  COMPOSANT : TimePunchCard.jsx (~350 lignes, 14 KB)
+    - Horloge en temps réel (HH:MM:SS + date formatée en français)
+    - Bouton géant dynamique CHECK-IN / CHECK-OUT avec effet d'onde
+    - Géolocalisation HTML5 native avec fallback transparent
+    - Statistiques quotidiennes (heures travaillées, heures sup)
+    - Intégration API backend réelle
+
+
+8.2 Gestion des congés
+──────────────────────
+
+  >> BACKEND — Machine à état
+
+  ENTITÉ : LeaveRequest.java (54 lignes)
+    - Clé primaire UUID
+    - Types  : PAID | SICK | UNPAID | MATERNITY_PATERNITY
+    - Statuts : PENDING | VALIDATED_N1 | PROCESSED_HR | REJECTED
+
+  SERVICE : LeaveRequestServiceImpl.java (97 lignes)
+
+    Machine à état stricte avec validation des rôles :
+
+                     ┌──────────────────────────────┐
+                     │       [SOUMISSION]            │
+                     │       (Employé)               │
+                     └─────────────┬────────────────┘
+                                   │
+                                   ▼
+                           ┌───────────────┐
+                           │   PENDING     │
+                           └───┬───────┬───┘
+                               │       │
+                    (MANAGER)  │       │  (MANAGER)
+                    Valider    │       │  Rejeter
+                               ▼       ▼
+                    ┌──────────────┐  ┌──────────┐
+                    │ VALIDATED_N1 │  │ REJECTED  │
+                    └──────┬───────┘  └──────────┘
+                           │
+                (HR_ADMIN) │  Traiter
+                           ▼
+                    ┌──────────────┐
+                    │ PROCESSED_HR │
+                    └──────────────┘
+
+  CONTRÔLEUR : LeaveRequestController.java (68 lignes)
+
+    ┌─────────┬──────────────────────────────────┬──────────────────────────────────────┐
+    │ Méthode │ Endpoint                         │ Description                          │
+    ├─────────┼──────────────────────────────────┼──────────────────────────────────────┤
+    │ POST    │ /api/v1/leaves?employeeId={id}   │ Soumettre une demande de congé       │
+    │ PATCH   │ /api/v1/leaves/{uuid}/status     │ Changer le statut d'une demande      │
+    └─────────┴──────────────────────────────────┴──────────────────────────────────────┘
+
+
+  >> FRONTEND — Vue employé
+
+  COMPOSANT : LeaveRequestEmployeeView.jsx (532 lignes, 22 KB)
+
+  Layout en 2 colonnes (formulaire 2/5 + historique 3/5) :
+
+    Formulaire de soumission :
+      - Sélection de dates (début/fin) avec validation
+      - Dropdown type de congé (Payé, Maladie, Sans Solde, Maternité/Paternité)
+      - Champ motif optionnel (textarea)
+      - Validation inline avec messages d'erreur
+      - Bouton de soumission avec spinner de chargement
+      - Appels API réels (apiClient.post('/api/leave-requests'))
+
+    Historique des demandes :
+      - Cartes individuelles avec type, durée (jours calculés), dates, motif
+      - Badges de statut dynamiques :
+          * En attente (amber, pulsant)
+          * Validé N+1 (blue)
+          * Traité RH (emerald)
+          * Refusé (red)
+      - Bouton de rafraîchissement
+      - Rechargement automatique après soumission
+
+
+  >> FRONTEND — Console de validation manager
+
+  COMPOSANT : LeaveManagerDashboard.jsx (357 lignes, 14 KB)
+
+    - 3 KPI Cards : Demandes en attente, Approuvées ce mois, Refusées ce mois
+    - Tableau de validation : Collaborateur, Type de congé, Période, Motif, Statut
+    - Boutons d'action : Valider (vert) / Refuser (rouge) avec feedback toast
+    - Visible uniquement pour les rôles HR_ADMIN et DIRECTION
+
+  [!] NOTE : LeaveManagerDashboard fonctionne en mode mock.
+      L'intégration avec le backend LeaveRequestController est la prochaine priorité.
+
+
+================================================================================
+9. MODULE 3 — PERFORMANCE & ANALYTICS (OAD & IA)
+================================================================================
+CDC §5.4 — Avancement : 35%
+
+9.1 Dashboard analytique
+─────────────────────────
+
+  COMPOSANT : AIAnalyticsDashboard.jsx (339 lignes, 15 KB)
+
+  Intègre la bibliothèque Recharts 3.8 pour les visualisations :
+
+  >> KPI Cards (3)
+
+    ┌───────────────────────────────┬──────────┬──────────────────────────────┐
+    │ KPI                           │ Valeur   │ Contexte                     │
+    ├───────────────────────────────┼──────────┼──────────────────────────────┤
+    │ Risque d'Attrition Global     │ 12%      │ Stable vs mois dernier       │
+    │ Taux de Présence Moyen        │ 94.2%    │ Objectif fixé à 95%          │
+    │ Alertes Formation             │ 5        │ Collaborateurs ciblés        │
+    └───────────────────────────────┴──────────┴──────────────────────────────┘
+
+  >> Graphique LSTM — Prévision des pics d'absences
+    - Type : AreaChart (Recharts) avec gradients
+    - Données : 12 mois (Janvier → Décembre)
+    - Séries : Données réelles vs Projections prédictives (courbe pointillée)
+    - Interaction : Tooltip au survol, légende
+
+  >> Graphique K-Means — Besoins en formation
+    - Type : PieChart donut (Recharts)
+    - Clusters : Technique (45%), Soft Skills (25%), Leadership (20%), Langues (10%)
+    - Légende : Personnalisée avec code couleur et pourcentages
+
+  >> Tableau Random Forest — Risques de départ
+    - Colonnes : Collaborateur (nom + rôle), Département, Facteur principal,
+                 Score de risque (barre + %), Statut
+    - Badges de criticité :
+        * Critique (rouge pulsant, >80%)
+        * Élevé (orange, >70%)
+        * Modéré (ambre)
+
+  [!] ATTENTION : Toutes les données sont actuellement MOCKÉES.
+      Aucun modèle IA n'est exécuté côté backend.
+
+
+================================================================================
+10. MODULE 4 — ASSISTANT INTELLIGENT & TICKETING
+================================================================================
+CDC §5.5 — Avancement : 25%
+
+10.1 Widget chatbot
+────────────────────
+
+  COMPOSANT : SmartAssistantWidget.jsx (219 lignes, 9 KB)
+
+  >> Bouton flottant (FAB)
+    - Position fixe en bas à droite (z-50)
+    - Gradient bleu-indigo avec animation ping radiale
+    - Icône sparkles animée (bounce)
+    - Transition d'ouverture/fermeture fluide
+
+  >> Fenêtre de chat (360×480px)
+    - En-tête gradient avec "NEXUS AI Assistant" et indicateur "En ligne" (vert)
+    - Zone de messages avec scroll automatique
+    - Bulles alternées user (gradient bleu-indigo) / bot (blanc avec bordure)
+    - Avatars iconiques (Bot / User) avec horodatage
+    - Indicateur "NEXUS AI réfléchit..." avec spinner
+    - Champ de saisie avec bouton d'envoi
+    - Conversation initiale pré-remplie (solde de congés)
+    - Auto-réponse simulée avec délai 1s (transfert ticket RH)
+
+  >> Intégration
+    - Composant global rendu sur toutes les pages (ligne 1226 de App.jsx)
+
+  [!] ATTENTION : Le chatbot fonctionne en SIMULATION LOCALE uniquement.
+      Aucune intégration LangChain4j, Claude API, ni RAG n'est en place.
+
+
+================================================================================
+11. INFRASTRUCTURE & DEVOPS
+================================================================================
+
+11.1 Conteneurisation
+──────────────────────
+
+  Fichier : docker-compose.yml (20 lignes)
+
+    services:
+      nexus-db:
+        image: mysql:8.0
+        container_name: nexus_mysql_container
+        environment:
+          MYSQL_DATABASE: nexus_erp_db
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_USER: nexus_user
+          MYSQL_PASSWORD: nexus_password
+        ports:
+          - "3306:3306"
+        volumes:
+          - nexus_db_data:/var/lib/mysql
+
+
+11.2 Environnement de développement
+─────────────────────────────────────
+
+  ┌────────────────────────┬───────────────────────────────────┬──────────┐
+  │ Composant              │ Commande                          │ Port     │
+  ├────────────────────────┼───────────────────────────────────┼──────────┤
+  │ Base MySQL             │ docker compose up -d              │ 3306     │
+  │ Backend Spring         │ ./mvnw spring-boot:run            │ 8080     │
+  │ Frontend React         │ npm run dev                       │ 5173     │
+  └────────────────────────┴───────────────────────────────────┴──────────┘
+
+
+================================================================================
+12. INVENTAIRE COMPLET DES FICHIERS
+================================================================================
+
+12.1 Backend — 42 fichiers Java
+────────────────────────────────
+
+  ┌─────────────────────┬───────────────────────────────────────────────────────────────────────────┬──────────┐
+  │ Catégorie           │ Fichiers                                                                  │ Lignes   │
+  ├─────────────────────┼───────────────────────────────────────────────────────────────────────────┼──────────┤
+  │ Configuration       │ SecurityConfig.java (157), JwtAuthenticationFilter.java                   │ ~250     │
+  │ Contrôleurs         │ AuthController (60), EmployeeProfileController (75),                      │ ~256     │
+  │                     │ LeaveRequestController (68), TimeTrackingController (53)                   │          │
+  │ Services            │ JwtService (136), EmployeeProfileService (203),                           │ ~600     │
+  │                     │ LeaveRequestServiceImpl (97), TimeCalculationService (146),                │          │
+  │                     │ LeaveRequestService (interface)                                            │          │
+  │ Modèles             │ User (94), Role, EmployeeProfile (91), EmployeeSkill,                     │ ~450     │
+  │                     │ EmployeeSkillId, Skill, HrDocument, LeaveRequest (54),                     │          │
+  │                     │ TimeTracking (44) + 4 enums                                                │          │
+  │ DTOs                │ LoginRequest, AuthResponse, EmployeeProfile*,                              │ ~200     │
+  │                     │ EmployeeSkillResponse, HrDocumentResponse, DailyTimeReport                 │          │
+  │ Exceptions          │ GlobalExceptionHandler, ResourceNotFoundException,                         │ ~80      │
+  │                     │ InvalidLeaveTransitionException                                            │          │
+  │ Utilitaires         │ AttributeEncryptor (122), PasswordHasherUtil                               │ ~150     │
+  ├─────────────────────┼───────────────────────────────────────────────────────────────────────────┼──────────┤
+  │ TOTAL               │ 42 fichiers                                                                │ ~2 000   │
+  └─────────────────────┴───────────────────────────────────────────────────────────────────────────┴──────────┘
+
+
+12.2 Frontend — 10 fichiers source
+───────────────────────────────────
+
+  ┌─────────────────────────────────────┬──────────┬──────────┐
+  │ Fichier                             │ Taille   │ Lignes   │
+  ├─────────────────────────────────────┼──────────┼──────────┤
+  │ App.jsx                             │ 68 KB    │ 1 232    │
+  │ LeaveRequestEmployeeView.jsx        │ 22 KB    │ 532      │
+  │ LeaveManagerDashboard.jsx           │ 14 KB    │ 357      │
+  │ AIAnalyticsDashboard.jsx            │ 15 KB    │ 339      │
+  │ DocumentsVaultView.jsx              │ 11 KB    │ 277      │
+  │ SmartAssistantWidget.jsx            │ 9 KB     │ 219      │
+  │ SkillsMatrixView.jsx               │ 9 KB     │ 206      │
+  │ TimePunchCard.jsx                   │ 14 KB    │ ~350     │
+  │ useAuthStore.js                     │ 1.3 KB   │ 47       │
+  │ apiClient.js                        │ 1.7 KB   │ 52       │
+  ├─────────────────────────────────────┼──────────┼──────────┤
+  │ TOTAL                               │ ~165 KB  │ ~3 600   │
+  └─────────────────────────────────────┴──────────┴──────────┘
+
+
+12.3 Migrations SQL — 9 fichiers
+
+  V1 à V9 (db/migration/) — 5.0 KB total
+
+
+12.4 Total projet
+
+  ┌────────────────────────────────────┬────────────┬──────────────────┐
+  │ Couche                             │ Fichiers   │ Lignes estimées  │
+  ├────────────────────────────────────┼────────────┼──────────────────┤
+  │ Backend Java                       │ 42         │ ~2 000           │
+  │ Frontend React/JS                  │ 10         │ ~3 600           │
+  │ Migrations SQL                     │ 9          │ ~150             │
+  │ Configuration (pom, docker, etc.)  │ ~10        │ ~300             │
+  ├────────────────────────────────────┼────────────┼──────────────────┤
+  │ TOTAL                              │ ~71        │ ~6 050           │
+  └────────────────────────────────────┴────────────┴──────────────────┘
+
+
+================================================================================
+13. APIs REST — DOCUMENTATION DES ENDPOINTS
+================================================================================
+
+13.1 Authentification
+──────────────────────
+
+  ┌─────────┬──────────────────────────────────┬──────┬──────────────────────────────────────┐
+  │ Méthode │ Endpoint                         │ Auth │ Description                          │
+  ├─────────┼──────────────────────────────────┼──────┼──────────────────────────────────────┤
+  │ POST    │ /api/auth/login                  │ Non  │ Connexion (email + password → JWT)    │
+  └─────────┴──────────────────────────────────┴──────┴──────────────────────────────────────┘
+
+
+13.2 Profils employés
+──────────────────────
+
+  ┌─────────┬──────────────────────────────────┬──────┬──────────────────────────────────────┐
+  │ Méthode │ Endpoint                         │ Auth │ Description                          │
+  ├─────────┼──────────────────────────────────┼──────┼──────────────────────────────────────┤
+  │ GET     │ /api/v1/hr/profiles              │ JWT  │ Lister tous les profils               │
+  │ GET     │ /api/v1/hr/profiles/{id}         │ JWT  │ Récupérer un profil par ID             │
+  │ POST    │ /api/v1/hr/profiles              │ JWT  │ Créer un nouveau profil               │
+  │ PUT     │ /api/v1/hr/profiles/{id}         │ JWT  │ Mettre à jour un profil               │
+  │ DELETE  │ /api/v1/hr/profiles/{id}         │ JWT  │ Supprimer un profil                   │
+  └─────────┴──────────────────────────────────┴──────┴──────────────────────────────────────┘
+
+
+13.3 Congés
+────────────
+
+  ┌─────────┬──────────────────────────────────────┬──────┬──────────────────────────────────────┐
+  │ Méthode │ Endpoint                             │ Auth │ Description                          │
+  ├─────────┼──────────────────────────────────────┼──────┼──────────────────────────────────────┤
+  │ POST    │ /api/v1/leaves?employeeId={id}       │ JWT  │ Soumettre une demande de congé        │
+  │ PATCH   │ /api/v1/leaves/{uuid}/status         │ JWT  │ Changer le statut d'une demande       │
+  └─────────┴──────────────────────────────────────┴──────┴──────────────────────────────────────┘
+
+
+13.4 Pointage (Time & Attendance)
+──────────────────────────────────
+
+  ┌─────────┬────────────────────────────────────────────────┬──────┬──────────────────────────────────────┐
+  │ Méthode │ Endpoint                                       │ Auth │ Description                          │
+  ├─────────┼────────────────────────────────────────────────┼──────┼──────────────────────────────────────┤
+  │ POST    │ /api/v1/tracking?employeeId={id}               │ JWT  │ Enregistrer un pointage              │
+  │ GET     │ /api/v1/tracking/report/{id}?date={yyyy-MM-dd} │ JWT  │ Rapport journalier (heures + HS)     │
+  └─────────┴────────────────────────────────────────────────┴──────┴──────────────────────────────────────┘
+
+
+================================================================================
+14. CONFORMITÉ AVEC LE CAHIER DES CHARGES
+================================================================================
+
+14.1 Tableau de conformité par exigence CDC
+────────────────────────────────────────────
+
+  [✓] = Réalisé   [~] = Partiel   [✗] = Non réalisé
+
+  ┌──────────┬──────────────────────────────────────────────────────────┬────────┬───────────────────────────────────────────────────────┐
+  │ Réf. CDC │ Exigence                                                 │ Statut │ Détail                                                │
+  ├──────────┼──────────────────────────────────────────────────────────┼────────┼───────────────────────────────────────────────────────┤
+  │ §5.1     │ 5 rôles natifs (EMPLOYEE, MANAGER, HR_ADMIN, etc.)      │  [✓]   │ Insérés en V1, mappés dans Spring Security             │
+  │ §5.1     │ JWT + Spring Security + RBAC                            │  [✓]   │ Filtre stateless + BCrypt(12)                          │
+  │ §5.2     │ Profil 360° avec champs d'identité complets             │  [✓]   │ CIN, adresse, contact, contrat, hiérarchie, etc.       │
+  │ §5.2     │ Coffre-fort numérique AES-256                           │  [~]   │ UI complète, AES-GCM actif sur RIB, backend manquant  │
+  │ §5.2     │ Génération automatique de PDF (attestations)            │  [✗]   │ Non implémenté                                         │
+  │ §5.2     │ Workflow demandes administratives avec SLAs              │  [✗]   │ Non implémenté                                         │
+  │ §5.3     │ Pointeuse numérique avec géolocalisation                │  [✓]   │ Frontend + Backend opérationnels                       │
+  │ §5.3     │ Machine à état de validation des congés                 │  [✓]   │ PENDING → VALIDATED_N1 → PROCESSED_HR                  │
+  │ §5.3     │ Interface de demande de congés (employé)                │  [✓]   │ LeaveRequestEmployeeView avec API réelle               │
+  │ §5.3     │ Interface de validation (manager/RH)                    │  [~]   │ LeaveManagerDashboard en mode mock                     │
+  │ §5.3     │ Calcul heures normales + supplémentaires                │  [✓]   │ Base 7h/jour, arrondi 2 décimales                      │
+  │ §5.3     │ Calcul heures de nuit                                   │  [✗]   │ Non implémenté                                         │
+  │ §5.3     │ Pointage QR Code                                       │  [✗]   │ Non implémenté                                         │
+  │ §5.3     │ Rapport mensuel paie (export)                           │  [✗]   │ Non implémenté                                         │
+  │ §5.3     │ Notifications email                                     │  [✗]   │ JavaMailSender non configuré                           │
+  │ §5.4     │ Dashboard KPIs collaborateur                            │  [✓]   │ 3 KPI cards dans AIAnalyticsDashboard                  │
+  │ §5.4     │ Graphiques prédictifs (LSTM, K-Means)                   │  [~]   │ Visualisations Recharts prêtes, backend IA absent      │
+  │ §5.4     │ Prédiction d'attrition (Random Forest)                  │  [~]   │ Tableau frontend prêt, modèle ML absent                │
+  │ §5.4     │ Heatmap de présence                                     │  [✗]   │ Non implémenté                                         │
+  │ §5.5     │ Widget chatbot conversationnel                          │  [~]   │ UI complète avec simulation, pas de NLP backend        │
+  │ §5.5     │ LangChain4j + Claude API                                │  [✗]   │ Aucune dépendance ajoutée                              │
+  │ §5.5     │ Système de ticketing avec SLAs                          │  [✗]   │ Aucun schéma ni CRUD                                   │
+  │ §7.2     │ Documentation Swagger/OpenAPI                           │  [✗]   │ springdoc-openapi absent                               │
+  │ §7.3     │ Refresh tokens rotatifs                                 │  [✗]   │ Non implémenté                                         │
+  │ §7.3     │ RGPD (minimisation données, consentement)               │  [✗]   │ Non implémenté                                         │
+  │ §4.2     │ Tests unitaires >80% couverture                         │  [✗]   │ Seul contextLoad auto-généré                           │
+  │ §6       │ Pipeline CI/CD GitHub Actions                           │  [✗]   │ Pas de workflows                                       │
+  │ §6       │ Dockerfiles production                                  │  [✗]   │ Pas de Dockerfiles individuels                         │
+  └──────────┴──────────────────────────────────────────────────────────┴────────┴───────────────────────────────────────────────────────┘
+
+
+14.2 Synthèse par module
+─────────────────────────
+
+  ┌──────────────────────────────────┬──────────────┬──────────────────────────────────────────────────────────┐
+  │ Module                           │ Avancement   │ Commentaire                                              │
+  ├──────────────────────────────────┼──────────────┼──────────────────────────────────────────────────────────┤
+  │ Authentification & RBAC          │ 75%          │ Fonctionnel, manque refresh tokens et @PreAuthorize      │
+  │ Core HR (Module 1)               │ 80%          │ Profils complets, UI coffre-fort, manque backend + PDF   │
+  │ T&A & Congés (Module 2)          │ 75%          │ Pointeuse + congés opérationnels                         │
+  │ Analytics & IA (Module 3)        │ 35%          │ Dashboard Recharts complet, aucun modèle ML backend      │
+  │ Chatbot & Ticketing (Module 4)   │ 25%          │ Widget UI prêt, aucune intégration NLP/ticketing         │
+  │ Infrastructure & Tests           │ 20%          │ Docker compose MySQL uniquement                          │
+  ├──────────────────────────────────┼──────────────┼──────────────────────────────────────────────────────────┤
+  │ TAUX D'AVANCEMENT GLOBAL         │ ~60%         │                                                          │
+  └──────────────────────────────────┴──────────────┴──────────────────────────────────────────────────────────┘
+
+
+================================================================================
+15. PERSPECTIVES D'ÉVOLUTION
+================================================================================
+
+15.1 Court terme (Priorité haute)
+──────────────────────────────────
+
+  1. Connecter les composants mock au backend :
+     - LeaveManagerDashboard → API /api/v1/leaves
+     - DocumentsVaultView → nouveau DocumentController
+
+  2. Implémenter le stockage physique des documents
+     (local uploads/ ou MinIO)
+
+  3. Activer @PreAuthorize sur les contrôleurs pour un RBAC réel
+     côté serveur
+
+  4. Configurer Spring Boot Starter Mail pour les notifications
+     de workflow
+
+
+15.2 Moyen terme (Priorité moyenne)
+─────────────────────────────────────
+
+  5. Backend IA : Microservice Python FastAPI ou intégration Java Smile
+     pour les modèles prédictifs
+
+  6. LangChain4j + Claude : Intégration du chatbot avec RAG sur les
+     données employés
+
+  7. Système de ticketing : Schéma SQL + CRUD + SLAs
+     (DSI 2h/4h, RH 24h/48h/72h)
+
+  8. Génération PDF : OpenPDF pour attestations de travail et
+     certificats de salaire
+
+
+15.3 Long terme (Finalisation PFE)
+───────────────────────────────────
+
+   9. Tests automatisés : JUnit 5 + Mockito pour atteindre >80% couverture
+
+  10. Documentation API : springdoc-openapi pour Swagger UI
+
+  11. CI/CD : GitHub Actions (build → test → Docker → deploy)
+
+  12. Dockerfiles production : Multi-stage builds
+      (frontend → Nginx, backend → JRE)
+
+  13. Refresh tokens rotatifs et conformité RGPD
+
+
+================================================================================
+                          FIN DU RAPPORT
+================================================================================
+
+  Document généré le 10 Juin 2026 — NEXUS ERP v2.0
+
+  Total : ~6 050 lignes de code
+          71 fichiers
+          9 migrations Flyway
+          12 endpoints REST
+          42 classes Java
+          7 composants React
+
+================================================================================

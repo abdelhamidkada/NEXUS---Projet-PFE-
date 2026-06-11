@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>NEXUS ERP — Objectifs Non-Fonctionnels</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .card {
+            width: 880px;
+            background: #1e293b;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 24px 28px 20px;
+        }
+        .card-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .card-title h1 {
+            font-size: 15px;
+            font-weight: 800;
+            color: #f1f5f9;
+        }
+        .card-title p {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+        .content {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        /* === RADAR === */
+        .radar-wrap {
+            flex-shrink: 0;
+            width: 340px;
+            display: flex;
+            justify-content: center;
+        }
+        .radar-wrap svg { display: block; }
+
+        /* === TABLE === */
+        .table-wrap {
+            flex: 1;
+            min-width: 0;
+        }
+        .tbl {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+        .tbl th {
+            text-align: left;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            padding: 6px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .tbl td {
+            padding: 8px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: middle;
+            color: #cbd5e1;
+        }
+        .tbl tr:last-child td { border-bottom: none; }
+        .tbl .obj-name {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            font-size: 10.5px;
+            color: #e2e8f0;
+        }
+        .tbl .obj-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .tbl .priority-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 8.5px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 100px;
+            letter-spacing: 0.3px;
+        }
+        .tbl .priority-badge.critical { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+        .tbl .priority-badge.high { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2); }
+        .tbl .priority-badge.medium { background: rgba(59,130,246,0.12); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2); }
+
+        .bar-bg {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+        .score-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .score-cell span {
+            font-size: 10px;
+            font-weight: 700;
+            flex-shrink: 0;
+            width: 28px;
+            text-align: right;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 8px;
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="card-title">
+        <h1>Priorités des Objectifs Non-Fonctionnels — NEXUS ERP</h1>
+        <p>Graphique radar + tableau de scoring · PFE — Kada Abdelhamid — DyxIA — Juin 2026</p>
+    </div>
+
+    <div class="content">
+
+        <!-- ═══ RADAR CHART (SVG) ═══ -->
+        <div class="radar-wrap">
+            <svg viewBox="0 0 320 300" width="340" height="320">
+                <defs>
+                    <linearGradient id="fillGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
+                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.15"/>
+                    </linearGradient>
+                    <linearGradient id="strokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#6366f1"/>
+                        <stop offset="100%" stop-color="#3b82f6"/>
+                    </linearGradient>
+                </defs>
+
+                <g transform="translate(160,155)">
+                    <!-- Grid rings (20%, 40%, 60%, 80%, 100%) -->
+                    <g stroke="rgba(255,255,255,0.06)" fill="none" stroke-width="0.8">
+                        <!-- Pentagon rings at 5 levels: r=24,48,72,96,120 -->
+                        <polygon points="0,-24 22.8,-7.4 14.1,19.4 -14.1,19.4 -22.8,-7.4"/>
+                        <polygon points="0,-48 45.7,-14.8 28.2,38.8 -28.2,38.8 -45.7,-14.8"/>
+                        <polygon points="0,-72 68.5,-22.3 42.3,58.2 -42.3,58.2 -68.5,-22.3"/>
+                        <polygon points="0,-96 91.3,-29.7 56.4,77.7 -56.4,77.7 -91.3,-29.7"/>
+                        <polygon points="0,-120 114.1,-37.1 70.5,97.1 -70.5,97.1 -114.1,-37.1"/>
+                    </g>
+
+                    <!-- Axis lines -->
+                    <g stroke="rgba(255,255,255,0.08)" stroke-width="0.6">
+                        <line x1="0" y1="0" x2="0" y2="-120"/>
+                        <line x1="0" y1="0" x2="114.1" y2="-37.1"/>
+                        <line x1="0" y1="0" x2="70.5" y2="97.1"/>
+                        <line x1="0" y1="0" x2="-70.5" y2="97.1"/>
+                        <line x1="0" y1="0" x2="-114.1" y2="-37.1"/>
+                    </g>
+
+                    <!-- Scale labels -->
+                    <g font-size="7" fill="#475569" font-family="Inter" text-anchor="middle">
+                        <text x="12" y="-22">2</text>
+                        <text x="12" y="-46">4</text>
+                        <text x="12" y="-70">6</text>
+                        <text x="12" y="-94">8</text>
+                        <text x="12" y="-118">10</text>
+                    </g>
+
+                    <!-- DATA POLYGON
+                        Sécurité:     9/10 → r=108  angle=270° → (0, -108)
+                        Performance:  7/10 → r=84   angle=342° → (79.9, -26.0)
+                        Scalabilité:  6/10 → r=72   angle=54°  → (42.3, 58.2) — wait need to recalc
+                        Conformité:   8/10 → r=96   angle=126° → (-56.4, 77.7) — recalc
+                        Maintenabilité: 7/10 → r=84  angle=198° → (-79.9, -26.0) — recalc
+
+                        Pentagon vertices at angle = -90 + i*72 degrees (i=0..4):
+                        0: -90°  (top)        → Sécurité 9/10: r=108 → x=0, y=-108
+                        1:  -18° (top-right)   → Performance 7/10: r=84 → x=84*cos(-18°)=79.9, y=84*sin(-18°)=-26.0
+                        2:  54°  (bottom-right) → Scalabilité 6/10: r=72 → x=72*cos(54°)=42.3, y=72*sin(54°)=58.2
+                        3:  126° (bottom-left)  → Conformité 8/10: r=96 → x=96*cos(126°)=-56.4, y=96*sin(126°)=77.7
+                        4:  198° (top-left)     → Maintenabilité 7/10: r=84 → x=84*cos(198°)=-79.9, y=84*sin(198°)=-26.0
+                    -->
+                    <polygon
+                        points="0,-108 79.9,-26.0 42.3,58.2 -56.4,77.7 -79.9,-26.0"
+                        fill="url(#fillGrad)"
+                        stroke="url(#strokeGrad)"
+                        stroke-width="2"
+                        stroke-linejoin="round"
+                    />
+
+                    <!-- Data points -->
+                    <g fill="#6366f1">
+                        <circle cx="0" cy="-108" r="4"/>
+                        <circle cx="79.9" cy="-26.0" r="4"/>
+                        <circle cx="42.3" cy="58.2" r="4"/>
+                        <circle cx="-56.4" cy="77.7" r="4"/>
+                        <circle cx="-79.9" cy="-26.0" r="4"/>
+                    </g>
+                    <!-- Point glow -->
+                    <g fill="#6366f1" opacity="0.3">
+                        <circle cx="0" cy="-108" r="8"/>
+                        <circle cx="79.9" cy="-26.0" r="8"/>
+                        <circle cx="42.3" cy="58.2" r="8"/>
+                        <circle cx="-56.4" cy="77.7" r="8"/>
+                        <circle cx="-79.9" cy="-26.0" r="8"/>
+                    </g>
+
+                    <!-- Value labels at data points -->
+                    <g font-size="9" font-weight="700" fill="#e2e8f0" font-family="Inter" text-anchor="middle">
+                        <text x="0" y="-115">9/10</text>
+                        <text x="92" y="-26">7/10</text>
+                        <text x="50" y="72">6/10</text>
+                        <text x="-64" y="90">8/10</text>
+                        <text x="-92" y="-30">7/10</text>
+                    </g>
+
+                    <!-- Axis labels -->
+                    <g font-size="10" font-weight="700" font-family="Inter" text-anchor="middle">
+                        <text x="0" y="-132" fill="#ef4444">🔒 Sécurité</text>
+                        <text x="132" y="-34" fill="#f59e0b" text-anchor="start">⚡ Performance</text>
+                        <text x="68" y="112" fill="#3b82f6">📐 Scalabilité</text>
+                        <text x="-68" y="112" fill="#10b981">📜 Conformité</text>
+                        <text x="-132" y="-34" fill="#8b5cf6" text-anchor="end">🔧 Maintenabilité</text>
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+        <!-- ═══ TABLE ═══ -->
+        <div class="table-wrap">
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <th>Objectif</th>
+                        <th>Priorité</th>
+                        <th style="width:140px;">Score</th>
+                        <th>Mesures implémentées</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="obj-name">
+                                <div class="obj-dot" style="background:#ef4444;"></div>
+                                Sécurité
+                            </div>
+                        </td>
+                        <td><span class="priority-badge critical">CRITIQUE</span></td>
+                        <td>
+                            <div class="score-cell">
+                                <span style="color:#ef4444;">9/10</span>
+                                <div class="bar-bg"><div class="bar-fill" style="width:90%;background:#ef4444;"></div></div>
+                            </div>
+                        </td>
+                        <td>JWT HS256, AES-256-GCM, BCrypt(12), RBAC 5 rôles, CORS, STATELESS</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="obj-name">
+                                <div class="obj-dot" style="background:#10b981;"></div>
+                                Conformité
+                            </div>
+                        </td>
+                        <td><span class="priority-badge critical">CRITIQUE</span></td>
+                        <td>
+                            <div class="score-cell">
+                                <span style="color:#10b981;">8/10</span>
+                                <div class="bar-bg"><div class="bar-fill" style="width:80%;background:#10b981;"></div></div>
+                            </div>
+                        </td>
+                        <td>Chiffrement RIB, seed BCrypt, Flyway versionné, machine à état congés</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="obj-name">
+                                <div class="obj-dot" style="background:#f59e0b;"></div>
+                                Performance
+                            </div>
+                        </td>
+                        <td><span class="priority-badge high">ÉLEVÉE</span></td>
+                        <td>
+                            <div class="score-cell">
+                                <span style="color:#f59e0b;">7/10</span>
+                                <div class="bar-bg"><div class="bar-fill" style="width:70%;background:#f59e0b;"></div></div>
+                            </div>
+                        </td>
+                        <td>@BatchSize(25), JOIN FETCH, LazyLoad, Axios timeout 10s, Vite HMR</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="obj-name">
+                                <div class="obj-dot" style="background:#8b5cf6;"></div>
+                                Maintenabilité
+                            </div>
+                        </td>
+                        <td><span class="priority-badge high">ÉLEVÉE</span></td>
+                        <td>
+                            <div class="score-cell">
+                                <span style="color:#8b5cf6;">7/10</span>
+                                <div class="bar-bg"><div class="bar-fill" style="width:70%;background:#8b5cf6;"></div></div>
+                            </div>
+                        </td>
+                        <td>Layer Architecture, Lombok DTO, Flyway séquentiel, Zustand persist</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="obj-name">
+                                <div class="obj-dot" style="background:#3b82f6;"></div>
+                                Scalabilité
+                            </div>
+                        </td>
+                        <td><span class="priority-badge medium">MOYENNE</span></td>
+                        <td>
+                            <div class="score-cell">
+                                <span style="color:#3b82f6;">6/10</span>
+                                <div class="bar-bg"><div class="bar-fill" style="width:60%;background:#3b82f6;"></div></div>
+                            </div>
+                        </td>
+                        <td>Docker Compose, STATELESS JWT, API versionnée (/api/v1/), SPA React</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        NEXUS ERP — Objectifs Non-Fonctionnels · Scoring basé sur l'analyse du code source au 10 Juin 2026 · PFE Kada Abdelhamid · DyxIA
+    </div>
+</div>
+
+</body>
+</html>

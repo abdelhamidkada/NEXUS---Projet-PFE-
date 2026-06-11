@@ -276,6 +276,7 @@ public class EmployeeProfileService {
                 .employmentFraction(canSeePrivateData ? profile.getEmploymentFraction() : null)
                 .seniorityLevel(canSeePrivateData ? profile.getSeniorityLevel() : null)
                 .signatureNumerique(canSeePrivateData ? profile.getSignatureNumerique() : null)
+                .leaveBalance(profile.getLeaveBalance())
                 // Collections
                 .skills(skills)
                 .documents(canSeePrivateData ? documents : null)

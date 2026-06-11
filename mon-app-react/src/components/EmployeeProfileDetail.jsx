@@ -276,6 +276,12 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
                 <p className="font-semibold mt-0.5">{profile.timeInJob}</p>
               </div>
             )}
+            {(isOwner || isAuthorizedRole) && profile.leaveBalance !== null && profile.leaveBalance !== undefined && (
+              <div className="mt-2 text-right">
+                <p className="text-blue-200 font-bold text-[9px] uppercase tracking-wider">Solde de Congés</p>
+                <p className="font-semibold mt-0.5">{profile.leaveBalance} jours</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -350,8 +356,15 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
                     icon={Globe}
                     label="Langues parlées"
                     value={profile.spokenLanguages}
-                    fullWidth
+                    fullWidth={!(isOwner || isAuthorizedRole)}
                   />
+                  {(isOwner || isAuthorizedRole) && (
+                    <InfoCard
+                      icon={Calendar}
+                      label="Solde de congés"
+                      value={profile.leaveBalance !== null && profile.leaveBalance !== undefined ? `${profile.leaveBalance} jours` : '0 jours'}
+                    />
+                  )}
 
                 </div>
               </div>
