@@ -66,4 +66,17 @@ public class TimeTrackingController {
         MonthlyCycleReport report = timeCalculationService.calculateMonthlyCycleReport(employeeId, targetDate);
         return ResponseEntity.ok(report);
     }
+
+    /**
+     * Endpoint POST permettant à un utilisateur RH d'outrepasser le statut late d'un pointage.
+     *
+     * @param trackingId L'UUID du pointage concerné.
+     * @return Le pointage mis à jour.
+     */
+    @PostMapping("/override/{trackingId}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('HR_ADMIN', 'DIRECTION')")
+    public ResponseEntity<TimeTracking> overrideLatePunchIn(@PathVariable java.util.UUID trackingId) {
+        TimeTracking updated = timeCalculationService.overrideLatePunchIn(trackingId);
+        return ResponseEntity.ok(updated);
+    }
 }

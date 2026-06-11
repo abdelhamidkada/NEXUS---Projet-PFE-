@@ -21,13 +21,15 @@ class TimeCalculationServiceTest {
 
     private TimeTrackingRepository timeTrackingRepository;
     private EmployeeProfileRepository employeeProfileRepository;
+    private com.dyxia.nexuserp.repository.LeaveRequestRepository leaveRequestRepository;
     private TimeCalculationService timeCalculationService;
 
     @BeforeEach
     void setUp() {
         timeTrackingRepository = Mockito.mock(TimeTrackingRepository.class);
         employeeProfileRepository = Mockito.mock(EmployeeProfileRepository.class);
-        timeCalculationService = new TimeCalculationService(timeTrackingRepository, employeeProfileRepository);
+        leaveRequestRepository = Mockito.mock(com.dyxia.nexuserp.repository.LeaveRequestRepository.class);
+        timeCalculationService = new TimeCalculationService(timeTrackingRepository, employeeProfileRepository, leaveRequestRepository);
     }
 
     @Test
@@ -100,5 +102,54 @@ class TimeCalculationServiceTest {
         // Total: 12h
         assertEquals(12.0, report.getTotalHours());
         assertEquals(4.0, report.getOvertimeHours());
+    }
+
+    @Test
+    void testRecordTimeTrackingWithinTolerance() {
+        Long employeeId = 1L;
+        com.dyxia.nexuserp.model.EmployeeProfile employee = com.dyxia.nexuserp.model.EmployeeProfile.builder().id(employeeId).build();
+        Mockito.when(employeeProfileRepository.findById(employeeId)).thenReturn(java.util.Optional.of(employee));
+        Mockito.when(timeTrackingRepository.save(any(TimeTracking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // 08:05 CHECK_IN
+        TimeTracking tracking = TimeTracking.builder()
+                .timestamp(LocalDateTime.of(2026, 6, 11, 8, 5))
+                .type(TrackingType.CHECK_IN)
+                .build();
+
+        TimeTracking recorded = timeCalculationService.recordTimeTracking(employeeId, tracking);
+        assertEquals("Normal", recorded.getAttendanceStatus());
+    }
+
+    @Test
+    void testRecordTimeTrackingLate() {
+        Long employeeId = 1L;
+        com.dyxia.nexuserp.model.EmployeeProfile employee = com.dyxia.nexuserp.model.EmployeeProfile.builder().id(employeeId).build();
+        Mockito.when(employeeProfileRepository.findById(employeeId)).thenReturn(java.util.Optional.of(employee));
+        Mockito.when(timeTrackingRepository.save(any(TimeTracking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // 08:06 CHECK_IN
+        TimeTracking tracking = TimeTracking.builder()
+                .timestamp(LocalDateTime.of(2026, 6, 11, 8, 6))
+                .type(TrackingType.CHECK_IN)
+                .build();
+
+        TimeTracking recorded = timeCalculationService.recordTimeTracking(employeeId, tracking);
+        assertEquals("Absence injustifiée", recorded.getAttendanceStatus());
+    }
+
+    @Test
+    void testOverrideLatePunchIn() {
+        java.util.UUID trackingId = java.util.UUID.randomUUID();
+        TimeTracking tracking = TimeTracking.builder()
+                .id(trackingId)
+                .attendanceStatus("Absence injustifiée")
+                .build();
+
+        Mockito.when(timeTrackingRepository.findById(trackingId)).thenReturn(java.util.Optional.of(tracking));
+        Mockito.when(timeTrackingRepository.save(any(TimeTracking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TimeTracking updated = timeCalculationService.overrideLatePunchIn(trackingId);
+        assertEquals("Absence justifiée (Maladie)", updated.getAttendanceStatus());
     }
 }

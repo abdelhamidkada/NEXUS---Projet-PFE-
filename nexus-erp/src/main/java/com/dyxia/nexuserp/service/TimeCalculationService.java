@@ -2,12 +2,15 @@ package com.dyxia.nexuserp.service;
 
 import com.dyxia.nexuserp.dto.DailyTimeReport;
 import com.dyxia.nexuserp.dto.MonthlyCycleReport;
+import com.dyxia.nexuserp.dto.DailyAttendanceDetail;
 import com.dyxia.nexuserp.exception.ResourceNotFoundException;
 import com.dyxia.nexuserp.model.EmployeeProfile;
+import com.dyxia.nexuserp.model.LeaveRequest;
 import com.dyxia.nexuserp.model.TimeTracking;
 import com.dyxia.nexuserp.model.TrackingType;
 import com.dyxia.nexuserp.repository.EmployeeProfileRepository;
 import com.dyxia.nexuserp.repository.TimeTrackingRepository;
+import com.dyxia.nexuserp.repository.LeaveRequestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
@@ -26,17 +29,21 @@ public class TimeCalculationService {
     private static final int SHIFT_START_HOUR = 8;
     private static final int SHIFT_END_HOUR = 16;
     private static final int OVERTIME_END_HOUR = 20;
+    private static final java.time.format.DateTimeFormatter TIME_FORMATTER = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
 
     private final TimeTrackingRepository timeTrackingRepository;
     private final EmployeeProfileRepository employeeProfileRepository;
+    private final LeaveRequestRepository leaveRequestRepository;
 
     /**
      * Constructeur pour injection de dépendances.
      */
     public TimeCalculationService(TimeTrackingRepository timeTrackingRepository,
-                                  EmployeeProfileRepository employeeProfileRepository) {
+                                  EmployeeProfileRepository employeeProfileRepository,
+                                  LeaveRequestRepository leaveRequestRepository) {
         this.timeTrackingRepository = timeTrackingRepository;
         this.employeeProfileRepository = employeeProfileRepository;
+        this.leaveRequestRepository = leaveRequestRepository;
     }
 
     /**
@@ -169,15 +176,73 @@ public class TimeCalculationService {
         double totalHours = 0.0;
         double overtimeHours = 0.0;
         int daysWorked = 0;
+        java.util.List<DailyAttendanceDetail> details = new java.util.ArrayList<>();
 
         LocalDate current = start;
         while (!current.isAfter(end)) {
             DailyTimeReport daily = calculateDailyTime(employeeId, current);
-            if (daily.getTotalHours() > 0 || daily.isMissingCheckout()) {
+            
+            String checkInTime = null;
+            String checkOutTime = null;
+            Double hoursWorked = daily.getTotalHours();
+            Double dailyOvertimeHours = daily.getOvertimeHours();
+            String status = null;
+            UUID trackingId = null;
+
+            List<LeaveRequest> leaves = leaveRequestRepository.findValidatedLeavesForToday(employeeId, current);
+            if (!leaves.isEmpty()) {
+                status = "Congé";
+                hoursWorked = 0.0;
+                dailyOvertimeHours = 0.0;
+            } else {
+                LocalDateTime startOfDay = current.atStartOfDay();
+                LocalDateTime endOfDay = current.plusDays(1).atStartOfDay();
+                List<TimeTracking> trackings = timeTrackingRepository.findByEmployeeProfileIdAndTimestampBetween(
+                        employeeId, startOfDay, endOfDay
+                );
+                TimeTracking checkIn = trackings.stream()
+                        .filter(t -> t.getType() == TrackingType.CHECK_IN)
+                        .findFirst().orElse(null);
+                TimeTracking checkOut = trackings.stream()
+                        .filter(t -> t.getType() == TrackingType.CHECK_OUT)
+                        .findFirst().orElse(null);
+
+                if (checkIn != null) {
+                    trackingId = checkIn.getId();
+                    checkInTime = checkIn.getTimestamp().toLocalTime().format(TIME_FORMATTER);
+                    status = checkIn.getAttendanceStatus();
+                    if (status == null || status.trim().isEmpty()) {
+                        status = "Normal";
+                    }
+                    if (checkOut != null) {
+                        checkOutTime = checkOut.getTimestamp().toLocalTime().format(TIME_FORMATTER);
+                    }
+                } else {
+                    java.time.DayOfWeek dow = current.getDayOfWeek();
+                    if (dow == java.time.DayOfWeek.SATURDAY || dow == java.time.DayOfWeek.SUNDAY) {
+                        status = "Week-end";
+                    } else {
+                        status = "Absent";
+                    }
+                }
+            }
+
+            if (hoursWorked > 0 || daily.isMissingCheckout()) {
                 totalHours += daily.getTotalHours();
                 overtimeHours += daily.getOvertimeHours();
                 daysWorked++;
             }
+
+            details.add(DailyAttendanceDetail.builder()
+                    .date(current)
+                    .checkInTime(checkInTime)
+                    .checkOutTime(checkOutTime)
+                    .hoursWorked(hoursWorked)
+                    .overtimeHours(dailyOvertimeHours)
+                    .status(status)
+                    .trackingId(trackingId)
+                    .build());
+
             current = current.plusDays(1);
         }
 
@@ -190,6 +255,7 @@ public class TimeCalculationService {
                 .totalHours(totalHours)
                 .overtimeHours(overtimeHours)
                 .daysWorked(daysWorked)
+                .dailyDetails(details)
                 .build();
     }
 
@@ -224,6 +290,36 @@ public class TimeCalculationService {
         if (tracking.getTimestamp() == null) {
             tracking.setTimestamp(LocalDateTime.now());
         }
+        
+        // Rule 2: Strict 5-minute tolerance check on check-in
+        if (tracking.getType() == TrackingType.CHECK_IN) {
+            java.time.LocalTime checkInTime = tracking.getTimestamp().toLocalTime();
+            int hour = checkInTime.getHour();
+            int minute = checkInTime.getMinute();
+            if (hour > SHIFT_START_HOUR || (hour == SHIFT_START_HOUR && minute > 5)) {
+                tracking.setAttendanceStatus("Absence injustifiée");
+            } else {
+                tracking.setAttendanceStatus("Normal");
+            }
+        }
+        
+        return timeTrackingRepository.save(tracking);
+    }
+
+    /**
+     * Permet à un administrateur RH d'outrepasser une absence injustifiée en absence justifiée (Maladie).
+     *
+     * @param trackingId L'ID du pointage à modifier.
+     * @return Le pointage mis à jour.
+     */
+    @Transactional
+    public TimeTracking overrideLatePunchIn(UUID trackingId) {
+        TimeTracking tracking = timeTrackingRepository.findById(trackingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pointage non trouvé avec l'ID : " + trackingId));
+        if (!"Absence injustifiée".equals(tracking.getAttendanceStatus())) {
+            throw new IllegalArgumentException("Seuls les pointages avec le statut 'Absence injustifiée' peuvent être modifiés.");
+        }
+        tracking.setAttendanceStatus("Absence justifiée (Maladie)");
         return timeTrackingRepository.save(tracking);
     }
 

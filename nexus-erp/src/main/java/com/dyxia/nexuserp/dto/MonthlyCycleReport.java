@@ -19,4 +19,5 @@ public class MonthlyCycleReport {
     private Double totalHours;
     private Double overtimeHours;
     private Integer daysWorked;
+    private java.util.List<DailyAttendanceDetail> dailyDetails;
 }

@@ -38,6 +38,18 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
         EmployeeProfile employee = employeeProfileRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Profil employé non trouvé avec l'ID : " + employeeId));
 
+        if (request.getType() == com.dyxia.nexuserp.model.LeaveType.SICK) {
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            boolean isAuthorized = false;
+            if (auth != null && auth.isAuthenticated()) {
+                isAuthorized = auth.getAuthorities().stream()
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_HR_ADMIN") || a.getAuthority().equals("ROLE_DIRECTION"));
+            }
+            if (!isAuthorized) {
+                throw new IllegalArgumentException("Seuls les RH et la Direction peuvent soumettre des demandes de congé maladie.");
+            }
+        }
+
         // Assurer que le statut initial est toujours forcé à PENDING
         request.setStatus(LeaveStatus.PENDING);
         request.setEmployeeProfile(employee);

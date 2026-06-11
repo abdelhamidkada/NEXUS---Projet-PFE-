@@ -51,6 +51,24 @@ const timeTrackingApi = {
       params: { date }
     });
     return response.data;
+  },
+
+  /**
+   * Récupère le rapport mensuel d'assiduité d'un employé.
+   */
+  getMonthlyReport: async (employeeId, date = null) => {
+    const params = {};
+    if (date) params.date = date;
+    const response = await apiClient.get(`/api/v1/tracking/report/monthly/${employeeId}`, { params });
+    return response.data;
+  },
+
+  /**
+   * Permet à un utilisateur RH de modifier le statut d'une absence injustifiée.
+   */
+  overrideLatePunchIn: async (trackingId) => {
+    const response = await apiClient.post(`/api/v1/tracking/override/${trackingId}`);
+    return response.data;
   }
 };
 
