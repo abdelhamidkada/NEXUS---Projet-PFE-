@@ -4,6 +4,10 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 /**
  * Zustand store to manage and persist global authentication state.
  * Leverages localstorage persistence middleware to maintain session state across page reloads.
+ *
+ * The `_hasHydrated` flag tracks whether the store has finished rehydrating from
+ * localStorage. This prevents route-guard flickering on initial page load — without it,
+ * the app briefly shows the Login page before Zustand restores the persisted session.
  */
 const useAuthStore = create(
   persist(
@@ -12,6 +16,9 @@ const useAuthStore = create(
       token: null,
       user: null,
       isAuthenticated: false,
+
+      /** Hydration flag — starts false, flipped to true once localStorage is loaded. */
+      _hasHydrated: false,
 
       // --- Actions ---
       
@@ -35,10 +42,21 @@ const useAuthStore = create(
         user: null,
         isAuthenticated: false
       }),
+
+      /** Internal setter used by the onRehydrateStorage callback. */
+      _setHasHydrated: (value) => set({ _hasHydrated: value }),
     }),
     {
       name: 'nexus-auth-storage', // Key used inside localstorage
       storage: createJSONStorage(() => localStorage), // Explicitly utilize standard localStorage wrapper
+
+      /**
+       * Called by Zustand after the store has been rehydrated from localStorage.
+       * Sets _hasHydrated to true so route guards can safely evaluate isAuthenticated.
+       */
+      onRehydrateStorage: () => (state) => {
+        state?._setHasHydrated(true);
+      },
     }
   )
 );

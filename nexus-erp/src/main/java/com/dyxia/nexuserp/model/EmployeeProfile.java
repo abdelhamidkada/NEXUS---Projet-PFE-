@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,6 +37,9 @@ public class EmployeeProfile {
     @Column(length = 100)
     private String department;
 
+    @Column(name = "matricule", unique = true, length = 50)
+    private String matricule;
+
     @Convert(converter = AttributeEncryptor.class)
     @Column(length = 512)
     private String rib;
@@ -53,10 +57,40 @@ public class EmployeeProfile {
     private String typeContrat;
 
     @Column(name = "date_debut_contrat")
-    private java.time.LocalDate dateDebutContrat;
+    private LocalDate dateDebutContrat;
 
     @Column(name = "duree_contrat")
     private Integer dureeContrat;
+
+    // ── Nouveaux champs métiers ───────────────────────────────────────────────
+
+    /** Date d'embauche (pour calculer l'ancienneté / time-in-job) */
+    @Column(name = "hire_date")
+    private LocalDate hireDate;
+
+    /** Modèle de travail : WFH, OFFICE, HYBRID [E] */
+    @Column(name = "work_model", length = 20)
+    private String workModel;
+
+    /** Fréquence de paye : MONTHLY, BI_MONTHLY [P] */
+    @Column(name = "pay_frequency", length = 30)
+    private String payFrequency;
+
+    /** Quotité de travail : FULL_TIME, PART_TIME [P] */
+    @Column(name = "employment_fraction", length = 30)
+    private String employmentFraction;
+
+    /** Localisation géographique du poste [E] */
+    @Column(name = "location", length = 100)
+    private String location;
+
+    /** Niveau d'expérience : JUNIOR, MID, SENIOR, LEAD [P] */
+    @Column(name = "seniority_level", length = 20)
+    private String seniorityLevel;
+
+    /** Langues parlées (texte libre) [E] */
+    @Column(name = "spoken_languages", length = 150)
+    private String spokenLanguages;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hierarchie_id")

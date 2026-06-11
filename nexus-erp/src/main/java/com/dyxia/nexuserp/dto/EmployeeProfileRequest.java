@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EmployeeProfileRequest {
     private Long userId;
+    private String matricule;
     private String jobTitle;
     private String department;
     private String rib;

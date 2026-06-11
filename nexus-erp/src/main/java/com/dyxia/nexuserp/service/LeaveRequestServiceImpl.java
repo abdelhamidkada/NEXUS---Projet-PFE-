@@ -1,5 +1,6 @@
 package com.dyxia.nexuserp.service;
 
+import com.dyxia.nexuserp.dto.LeaveRequestResponse;
 import com.dyxia.nexuserp.exception.InvalidLeaveTransitionException;
 import com.dyxia.nexuserp.exception.ResourceNotFoundException;
 import com.dyxia.nexuserp.model.EmployeeProfile;
@@ -9,7 +10,9 @@ import com.dyxia.nexuserp.repository.EmployeeProfileRepository;
 import com.dyxia.nexuserp.repository.LeaveRequestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Implémentation du service LeaveRequestService gérant le workflow de demande de congés.
@@ -93,4 +96,32 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
 
         return leaveRequestRepository.save(leaveRequest);
     }
+
+    @Override
+    public List<LeaveRequestResponse> getAllLeaveRequests() {
+        return leaveRequestRepository.findAll().stream()
+                .map(request -> {
+                    EmployeeProfile profile = request.getEmployeeProfile();
+                    String employeeName = "Collaborateur";
+                    String employeeEmail = "";
+                    if (profile != null && profile.getUser() != null) {
+                        employeeName = profile.getUser().getFirstName() + " " + profile.getUser().getLastName();
+                        employeeEmail = profile.getUser().getEmail();
+                    }
+                    return LeaveRequestResponse.builder()
+                            .id(request.getId())
+                            .startDate(request.getStartDate())
+                            .endDate(request.getEndDate())
+                            .type(request.getType())
+                            .status(request.getStatus())
+                            .reason(request.getReason())
+                            .managerComment(request.getManagerComment())
+                            .employeeId(profile != null ? profile.getId() : null)
+                            .employeeName(employeeName)
+                            .employeeEmail(employeeEmail)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
 }
+

@@ -1,11 +1,13 @@
 package com.dyxia.nexuserp.repository;
 
 import com.dyxia.nexuserp.model.EmployeeProfile;
+import com.dyxia.nexuserp.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interface Repository pour l'accès aux données de l'entité {@link EmployeeProfile}.
@@ -30,4 +32,13 @@ public interface EmployeeProfileRepository extends JpaRepository<EmployeeProfile
      * @return true si le profil existe, sinon false.
      */
     boolean existsByUserId(Long userId);
+
+    /**
+     * Recherche un profil par son utilisateur associé.
+     *
+     * @param user L'utilisateur.
+     * @return Un Optional contenant le profil.
+     */
+    Optional<EmployeeProfile> findByUser(User user);
 }
+

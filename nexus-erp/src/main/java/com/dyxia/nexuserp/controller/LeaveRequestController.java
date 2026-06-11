@@ -1,5 +1,6 @@
 package com.dyxia.nexuserp.controller;
 
+import com.dyxia.nexuserp.dto.LeaveRequestResponse;
 import com.dyxia.nexuserp.model.LeaveRequest;
 import com.dyxia.nexuserp.model.LeaveStatus;
 import com.dyxia.nexuserp.service.LeaveRequestService;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -33,6 +35,16 @@ public class LeaveRequestController {
             @RequestBody LeaveRequest request) {
         LeaveRequest submitted = leaveRequestService.submitLeaveRequest(employeeId, request);
         return new ResponseEntity<>(submitted, HttpStatus.CREATED);
+    }
+
+    /**
+     * Endpoint GET pour récupérer toutes les demandes de congés.
+     * 
+     * @return La liste de toutes les demandes de congés sous forme de LeaveRequestResponse.
+     */
+    @GetMapping
+    public ResponseEntity<List<LeaveRequestResponse>> getAllLeaveRequests() {
+        return ResponseEntity.ok(leaveRequestService.getAllLeaveRequests());
     }
 
     /**
@@ -65,3 +77,4 @@ public class LeaveRequestController {
         private String userRole;
     }
 }
+

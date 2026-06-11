@@ -1,7 +1,9 @@
 package com.dyxia.nexuserp.service;
 
+import com.dyxia.nexuserp.dto.LeaveRequestResponse;
 import com.dyxia.nexuserp.model.LeaveRequest;
 import com.dyxia.nexuserp.model.LeaveStatus;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -39,4 +41,12 @@ public interface LeaveRequestService {
      * @return La demande de congé mise à jour.
      */
     LeaveRequest changeLeaveStatus(UUID requestId, LeaveStatus newStatus, String comment, String userRole);
+
+    /**
+     * Récupère toutes les demandes de congés de la base de données mappées en DTOs.
+     *
+     * @return La liste de toutes les demandes de congés.
+     */
+    List<LeaveRequestResponse> getAllLeaveRequests();
 }
+

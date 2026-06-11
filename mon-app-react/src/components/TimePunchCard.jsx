@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore';
 import timeTrackingApi from '../api/timeTrackingApi';
+import apiClient from '../api/apiClient';
 
 export default function TimePunchCard({ onShowToast }) {
   const { user } = useAuthStore();
@@ -30,14 +31,37 @@ export default function TimePunchCard({ onShowToast }) {
     error: null
   });
 
-  // Déduire l'ID de l'employé
-  const getEmployeeId = () => {
-    if (user?.email === 'admin@nexus.com') return 1;
-    if (user?.email === 'employee@nexus.com') return 2;
-    return user?.employeeId || user?.id || 2;
-  };
+  const [employeeId, setEmployeeId] = useState(user?.profileId || null);
 
-  const employeeId = getEmployeeId();
+  // Dynamic profile ID resolution
+  useEffect(() => {
+    const resolveEmployeeId = async () => {
+      if (!user) return;
+      if (user.profileId) {
+        setEmployeeId(user.profileId);
+        return;
+      }
+      try {
+        const res = await apiClient.get('/api/v1/hr/profiles');
+        const myProfile = res.data.find(
+          (p) => p.email && p.email.toLowerCase() === user.email.toLowerCase()
+        );
+        if (myProfile) {
+          setEmployeeId(myProfile.id);
+          const { token: jwtToken, login: storeLogin } = useAuthStore.getState();
+          storeLogin(jwtToken, { 
+            ...user, 
+            profileId: myProfile.id, 
+            firstName: myProfile.firstName, 
+            lastName: myProfile.lastName 
+          });
+        }
+      } catch (err) {
+        console.error("Erreur de résolution du profil employé", err);
+      }
+    };
+    resolveEmployeeId();
+  }, [user]);
 
   // Horloge en temps réel
   useEffect(() => {
@@ -49,6 +73,7 @@ export default function TimePunchCard({ onShowToast }) {
 
   // Récupérer le rapport quotidien au montage
   const fetchDailyReport = async (silent = false) => {
+    if (!employeeId) return;
     if (!silent) setInitialLoading(true);
     try {
       const todayStr = new Date().toISOString().split('T')[0];
@@ -56,7 +81,10 @@ export default function TimePunchCard({ onShowToast }) {
       setDailyReport(data);
       
       // Réconciliation intelligente : si isMissingCheckout est true, l'employé est en cours de service (Checked In)
-      setIsCheckedIn(data.isMissingCheckout);
+      // Ne pas écraser l'état local immédiat lors d'un rafraîchissement silencieux post-action
+      if (!silent) {
+        setIsCheckedIn(data.isMissingCheckout);
+      }
     } catch (err) {
       console.error("Erreur lors de la récupération du rapport de pointage", err);
       if (onShowToast) {
@@ -68,10 +96,10 @@ export default function TimePunchCard({ onShowToast }) {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && employeeId) {
       fetchDailyReport();
     }
-  }, [user]);
+  }, [user, employeeId]);
 
   // Demander la géolocalisation GPS
   const requestLocation = () => {
@@ -135,8 +163,9 @@ export default function TimePunchCard({ onShowToast }) {
       // 3. Appel API
       await timeTrackingApi.punch(type, coords.latitude, coords.longitude, employeeId);
 
-      // 4. Mettre à jour l'état local et notifier
-      setIsCheckedIn(!isCheckedIn);
+      // 4. Mettre à jour l'état local et notifier de manière cohérente
+      const newCheckedInState = type === 'CHECK_IN';
+      setIsCheckedIn(newCheckedInState);
       
       if (onShowToast) {
         onShowToast(
@@ -205,7 +234,7 @@ export default function TimePunchCard({ onShowToast }) {
               : 'bg-amber-50 text-amber-700 border border-amber-100'}`}
           >
             <span className={`h-1.5 w-1.5 rounded-full ${isCheckedIn ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
-            {isCheckedIn ? "En Service" : "Inactif"}
+            {isCheckedIn ? "Actif" : "Inactif"}
           </span>
         </div>
       </div>
@@ -250,7 +279,7 @@ export default function TimePunchCard({ onShowToast }) {
                 <>
                   <Square className="h-10 w-10 text-white mb-2 shrink-0 drop-shadow" />
                   <span className="text-xs font-extrabold uppercase tracking-widest leading-none drop-shadow text-center px-2">
-                    Pointage Sortie
+                    POINTAGE SORTIE
                   </span>
                   <span className="text-[10px] font-semibold opacity-85 mt-1">
                     (Check-Out)
@@ -260,7 +289,7 @@ export default function TimePunchCard({ onShowToast }) {
                 <>
                   <Play className="h-10 w-10 text-white mb-2 translate-x-0.5 shrink-0 drop-shadow" />
                   <span className="text-xs font-extrabold uppercase tracking-widest leading-none drop-shadow text-center px-2">
-                    Pointage Entrée
+                    POINTAGE ENTRÉE
                   </span>
                   <span className="text-[10px] font-semibold opacity-85 mt-1">
                     (Check-In)

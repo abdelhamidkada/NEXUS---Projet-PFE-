@@ -21,16 +21,10 @@ const timeTrackingApi = {
     if (!resolvedEmployeeId) {
       const user = useAuthStore.getState().user;
       if (user) {
-        if (user.email === 'admin@nexus.com') {
-          resolvedEmployeeId = 1;
-        } else if (user.email === 'employee@nexus.com') {
-          resolvedEmployeeId = 2;
-        } else {
-          // Fallback par défaut si d'autres utilisateurs sont présents
-          resolvedEmployeeId = user.employeeId || user.id || 2;
-        }
-      } else {
-        throw new Error("Impossible de pointer : aucun utilisateur connecté.");
+        resolvedEmployeeId = user.profileId || user.id;
+      }
+      if (!resolvedEmployeeId) {
+        throw new Error("Impossible de pointer : aucun utilisateur connecté ou profil non résolu.");
       }
     }
 

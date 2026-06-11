@@ -2,6 +2,8 @@ package com.dyxia.nexuserp.controller;
 
 import com.dyxia.nexuserp.dto.AuthResponse;
 import com.dyxia.nexuserp.dto.LoginRequest;
+import com.dyxia.nexuserp.model.User;
+import com.dyxia.nexuserp.model.Role;
 import com.dyxia.nexuserp.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -45,15 +47,22 @@ public class AuthController {
 
         // 2. Chargement des détails de l'utilisateur
         final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+        final User user = (User) userDetails;
 
         // 3. Génération du token JWT d'accès
         final String token = jwtService.generateToken(userDetails);
 
-        // 4. Retour du DTO de réponse avec le jeton
+        // 4. Retour du DTO de réponse avec le jeton et les détails utilisateur
         return ResponseEntity.ok(
                 AuthResponse.builder()
                         .token(token)
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .roles(user.getRoles().stream().map(Role::getName).toList())
                         .build()
         );
     }
 }
+
