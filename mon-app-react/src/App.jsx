@@ -76,11 +76,27 @@ const RoleProtectedRoute = ({ allowedRoles, children, navigate }) => {
   return children;
 };
 
+// Helper to check JWT expiration
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(atob(parts[1]));
+    if (!payload.exp) return false;
+    return payload.exp < Date.now() / 1000;
+  } catch {
+    return true;
+  }
+};
+
 // ─── Main App ──────────────────────────────────────────────────────────────────
 function App() {
   const { t, i18n } = useTranslation();
-  const { user, isAuthenticated, login, logout, _hasHydrated } = useAuthStore();
+  const { token, user, isAuthenticated, login, logout, _hasHydrated } = useAuthStore();
   const settings = useAppStore(state => state.settings);
+
+  const [redirectPath, setRedirectPath] = useState(null);
 
   // Sync theme
   useEffect(() => {
@@ -212,6 +228,35 @@ function App() {
       setCurrentPath('/tableau-de-bord');
     }
   }, [currentPath]);
+
+  // Validate token expiration/validity upon hydration or path changes
+  useEffect(() => {
+    if (_hasHydrated) {
+      if (isAuthenticated && token) {
+        if (isTokenExpired(token)) {
+          logout();
+          showToast("Votre session a expiré. Veuillez vous reconnecter.", "error");
+        }
+      }
+    }
+  }, [_hasHydrated, isAuthenticated, token, currentPath]);
+
+  // Capture target URL on direct unauthenticated access
+  useEffect(() => {
+    if (_hasHydrated && !isAuthenticated) {
+      if (currentPath && currentPath !== '/' && currentPath !== '/tableau-de-bord') {
+        setRedirectPath(currentPath);
+      }
+    }
+  }, [_hasHydrated, isAuthenticated, currentPath]);
+
+  // Redirect to target URL on successful login
+  useEffect(() => {
+    if (isAuthenticated && redirectPath) {
+      navigate(redirectPath);
+      setRedirectPath(null);
+    }
+  }, [isAuthenticated, redirectPath]);
 
   const fetchProfiles = async () => {
     setLoading(true);
