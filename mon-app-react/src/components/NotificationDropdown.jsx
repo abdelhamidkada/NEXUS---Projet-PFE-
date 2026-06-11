@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -16,7 +15,7 @@ export const Badge = ({ count }) => {
 /**
  * Dropdown menu for system notifications.
  */
-const NotificationDropdown = ({ notifications, count, onMarkAsRead }) => {
+const NotificationDropdown = ({ notifications, onMarkAsRead }) => {
   const { t } = useTranslation();
 
   return (

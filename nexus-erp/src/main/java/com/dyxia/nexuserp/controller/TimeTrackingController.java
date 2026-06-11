@@ -1,6 +1,7 @@
 package com.dyxia.nexuserp.controller;
 
 import com.dyxia.nexuserp.dto.DailyTimeReport;
+import com.dyxia.nexuserp.dto.MonthlyCycleReport;
 import com.dyxia.nexuserp.model.TimeTracking;
 import com.dyxia.nexuserp.service.TimeCalculationService;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,22 @@ public class TimeTrackingController {
             @PathVariable Long employeeId,
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         DailyTimeReport report = timeCalculationService.calculateDailyTime(employeeId, date);
+        return ResponseEntity.ok(report);
+    }
+
+    /**
+     * Endpoint GET pour obtenir le rapport d'assiduité mensuel (cycle du 16 au 15) contenant la date donnée.
+     *
+     * @param employeeId L'identifiant du profil de l'employé.
+     * @param date       La date au format YYYY-MM-DD (optionnel, aujourd'hui par défaut).
+     * @return Le DTO MonthlyCycleReport.
+     */
+    @GetMapping("/report/monthly/{employeeId}")
+    public ResponseEntity<MonthlyCycleReport> getMonthlyCycleReport(
+            @PathVariable Long employeeId,
+            @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        MonthlyCycleReport report = timeCalculationService.calculateMonthlyCycleReport(employeeId, targetDate);
         return ResponseEntity.ok(report);
     }
 }

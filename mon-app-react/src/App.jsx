@@ -160,13 +160,8 @@ function App() {
   const profileMenuRef = React.useRef(null);
   
   const [notifications, setNotifications] = useState([]);
-  const [count, setCount] = useState(0);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = React.useRef(null);
-
-  useEffect(() => {
-    setCount(notifications.length);
-  }, [notifications]);
 
   const fetchNotifications = async () => {
     try {
@@ -222,6 +217,7 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     if (currentPath === '/' || currentPath === '/index.html') {
       window.history.replaceState(null, '', '/tableau-de-bord');
@@ -257,6 +253,7 @@ function App() {
       setRedirectPath(null);
     }
   }, [isAuthenticated, redirectPath]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   const fetchProfiles = async () => {
     setLoading(true);
@@ -568,7 +565,7 @@ function App() {
             </div>
           </div>
 
-          <p className="text-center text-xs text-gray-400 mt-6">© 2026 DyxIA · NEXUS ERP · Données chiffrées AES-256</p>
+          <p className="text-center text-xs text-gray-400 mt-6">© 2026 DyxIA · NEXUS ERP</p>
         </div>
       </div>
     );
@@ -757,7 +754,6 @@ function App() {
               {isNotificationsOpen && (
                 <NotificationDropdown
                   notifications={notifications}
-                  count={count}
                   onMarkAsRead={markAsRead}
                 />
               )}
