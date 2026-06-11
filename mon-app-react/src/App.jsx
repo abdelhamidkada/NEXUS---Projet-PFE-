@@ -707,9 +707,11 @@ function App() {
                 <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-2xl shadow-xl py-3 z-30 animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="px-4 pb-2 border-b border-gray-100 flex items-center justify-between">
                     <span className="text-xs font-bold text-gray-800">{t('header.notifications', 'Notifications')}</span>
-                    <span className="text-[10px] bg-red-50 text-red-600 font-bold px-2 py-0.5 rounded-full">
-                      {t('header.new_notifications', { count: notifications.length, defaultValue: `${notifications.length} nouvelles` })}
-                    </span>
+                    {notifications.length > 0 && (
+                      <span className="text-[10px] bg-red-50 text-red-600 font-bold px-2 py-0.5 rounded-full">
+                        {t('header.new_notifications', { count: notifications.length, defaultValue: `${notifications.length} nouvelles` })}
+                      </span>
+                    )}
                   </div>
                   <div className="max-h-60 overflow-y-auto mt-2">
                     {notifications.length === 0 ? (
