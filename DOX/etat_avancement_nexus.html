@@ -934,7 +934,7 @@
             </div>
             <div class="stat-card">
                 <div>
-                    <div class="stat-value">22 / 28</div>
+                    <div class="stat-value">25 / 28</div>
                     <div class="stat-label">Exigences CDC complétées</div>
                 </div>
                 <div class="stat-icon icon-orange">🎯</div>
@@ -1148,19 +1148,21 @@
                         <div class="module-progress-wrapper">
                             <div class="module-pct-text">
                                 <span>Statut d'implémentation</span>
-                                <span>65%</span>
+                                <span>90%</span>
                             </div>
                             <div class="progress-bar-bg">
-                                <div class="progress-bar-fill fill-purple" style="width: 65%;"></div>
+                                <div class="progress-bar-fill fill-purple" style="width: 90%;"></div>
                             </div>
                         </div>
                         
                         <div class="list-title done">Ce qui est fait</div>
                         <ul class="bullets-list done-bullets">
                             <li>Docker Compose MySQL 8.0 préconfiguré</li>
-                            <li>Versioning incrémental Flyway structuré en 14 migrations</li>
+                            <li>Versioning incrémental Flyway structuré en 17 migrations</li>
                             <li>Module de configuration des Paramètres (thème sombre, langue i18n)</li>
-                            <li>Tests automatisés écrits sur LeaveAccrual et TimeCalculation</li>
+                            <li>Tests automatisés complets sur Refresh Tokens, File Storage et Time Tracking</li>
+                            <li>Documentation Swagger/OpenAPI interactive avec whitelisting & Bearer JWT</li>
+                            <li>Workflow CI/CD (GitHub Actions) & Dockerfile.prod multi-stage</li>
                         </ul>
                     </div>
                     <div>
@@ -1168,9 +1170,6 @@
                         <div class="list-title gap">Gaps Restants</div>
                         <ul class="bullets-list gap-bullets">
                             <li>Couverture de tests unitaires/intégration globale > 80%</li>
-                            <li>Workflow CI/CD automatisé (GitHub Actions)</li>
-                            <li>Dockerfiles de production multi-stage</li>
-                            <li>Documentation REST Swagger / OpenAPI</li>
                         </ul>
                     </div>
                 </div>
@@ -1189,9 +1188,9 @@
                 </div>
                 <div class="filter-buttons">
                     <button class="filter-btn active" onclick="setFilter('ALL', this)">Tous</button>
-                    <button class="filter-btn" onclick="setFilter('DONE', this)">Réalisés (22)</button>
-                    <button class="filter-btn" onclick="setFilter('PARTIAL', this)">Partiels (3)</button>
-                    <button class="filter-btn" onclick="setFilter('MISSING', this)">Non Réalisés (3)</button>
+                    <button class="filter-btn" onclick="setFilter('DONE', this)">Réalisés (25)</button>
+                    <button class="filter-btn" onclick="setFilter('PARTIAL', this)">Partiels (2)</button>
+                    <button class="filter-btn" onclick="setFilter('MISSING', this)">Non Réalisés (1)</button>
                 </div>
             </div>
 
@@ -1419,14 +1418,14 @@
                                 <td class="req-detail">Des tests unitaires et d'intégration robustes ont été ajoutés pour LeaveAccrualService et TimeCalculationService. La couverture globale reste inférieure à 80%.</td>
                             </tr>
                             <!-- Req 22 -->
-                            <tr data-status="MISSING">
+                            <tr data-status="DONE">
                                 <td class="ref-col">§6</td>
                                 <td>
                                     <div class="req-desc">Pipeline CI/CD (GitHub Actions)</div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Déploiement & Build automatisé</div>
                                 </td>
-                                <td><span class="badge badge-missing">Non Réalisé</span></td>
-                                <td class="req-detail">Aucun fichier de workflow GitHub Actions configuré à la racine du dépôt pour le moment.</td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Workflow GitHub Actions ci-cd.yml configuré pour lancer automatiquement mvn clean verify à chaque push sur la branche main.</td>
                             </tr>
                             <!-- Req 23 -->
                             <tr data-status="DONE">
@@ -1439,24 +1438,24 @@
                                 <td class="req-detail">Fichier docker-compose.yml présent et configuré pour lancer instantanément le serveur de base de données MySQL 8.0 local avec les bonnes variables.</td>
                             </tr>
                             <!-- Req 24 -->
-                            <tr data-status="MISSING">
+                            <tr data-status="DONE">
                                 <td class="ref-col">§6</td>
                                 <td>
                                     <div class="req-desc">Dockerfiles de production multi-stage</div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Builds légers optimisés</div>
                                 </td>
-                                <td><span class="badge badge-missing">Non Réalisé</span></td>
-                                <td class="req-detail">Reste à écrire le Dockerfile du backend (JRE allégée) et du frontend (serveur Nginx hébergeant le build statique).</td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Dockerfile.prod multi-stage créé (Maven builder stage + Eclipse Temurin JRE alpine runner stage) à la racine, exposant le port 8080.</td>
                             </tr>
                             <!-- Req 25 -->
-                            <tr data-status="PARTIAL">
+                            <tr data-status="DONE">
                                 <td class="ref-col">§7.2</td>
                                 <td>
                                     <div class="req-desc">Documentation interactive REST Swagger</div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Swagger UI / OpenAPI 3</div>
                                 </td>
-                                <td><span class="badge badge-partial">Partiel</span></td>
-                                <td class="req-detail">Configuration préliminaire et exposition partielle des endpoints REST; la console interactive complète reste à finaliser avec les métadonnées OpenAPI.</td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Documentation OpenAPI 3 complète configurée via springdoc-openapi. Swagger UI accessible publiquement avec support global Bearer JWT pour tests interactifs.</td>
                             </tr>
                             <!-- Req 26 -->
                             <tr data-status="DONE">

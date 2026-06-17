@@ -12,11 +12,11 @@ Workspace du projet : d:\Dev\NEXUS
 --------------------------------------------------------------------------------
 SYNTHÈSE GLOBALE ET STATISTIQUES
 --------------------------------------------------------------------------------
-Avancement Global Estimé : 93%
+Avancement Global Estimé : 97%
 
-- Fichiers sources actifs : 124
-- Lignes de code (LOC) : 13 450
-- Exigences CDC complétées : 25 / 28
+- Fichiers sources actifs : 128
+- Lignes de code (LOC) : 13 650
+- Exigences CDC complétées : 27 / 28
 - Migrations Flyway validées : 17
 
 
@@ -48,15 +48,17 @@ PROGRESSION RÉELLE PAR MODULE APPLICATIF
    [FAIT] Widget flottant conversationnel connecté à Spring Boot et à l'API Google Gemini (modèle gemini-2.5-flash) servant d'assistant RH.
    [FAIT] Module Support / Ticketing complet : entité JPA SupportTicket, statut (OPEN à CLOSED), priorité (LOW à CRITICAL), calcul automatique de la SLA (de +4h à +72h), endpoints REST et script SQL Flyway.
 
-6. Infrastructure, Qualité & DevOps (§4.2, 6 & 7.3) : 65%
+6. Infrastructure, Qualité & DevOps (§4.2, 6 & 7.3) : 90%
    [FAIT] Docker Compose MySQL 8.0, versioning Flyway (17 migrations), i18n & thèmes, tests automatisés complets sur Refresh Tokens, File Storage et Time Tracking.
-   [GAP] Couverture de tests globale > 80%, workflow CI/CD (GitHub Actions), Dockerfiles de production multi-stage.
+   [FAIT] Documentation Swagger/OpenAPI interactive REST avec whitelisting et authentification Bearer JWT.
+   [FAIT] Workflow CI/CD automatisé (GitHub Actions) et Dockerfile de production multi-stage.
+   [GAP] Couverture de tests globale > 80%.
 
 --------------------------------------------------------------------------------
 MATRICE DE CONFORMITÉ SYSTÉMIQUE (28 EXIGENCES)
 --------------------------------------------------------------------------------
 
-[RÉALISÉ] (25/28) :
+[RÉALISÉ] (27/28) :
 - §5.1 : Rôles applicatifs natifs (5 rôles distincts)
 - §5.1 : Sécurité JWT & Protection des Routes (authentification stateless)
 - §5.1 : Refresh Tokens rotatifs (Authentification persistante sécurisée)
@@ -80,15 +82,15 @@ MATRICE DE CONFORMITÉ SYSTÉMIQUE (28 EXIGENCES)
 - §5.5 : Système de Ticketing avec SLAs (support interne)
 - §6 : Conteneurisation locale (Docker Compose MySQL 8.0)
 - §6 : Versioning de base de données Flyway (17 migrations)
+- §6 : Pipeline CI/CD (GitHub Actions) & Dockerfiles de production multi-stage
+- §7.2 : Documentation interactive REST Swagger/OpenAPI (whitelisting et JWT intégrés)
 - §7.3 : Paramètres de thème & i18n settings (intégré dans module paramètres)
 - §7.3 : Journalisation & RGPD (minimisation appliquée, protection path traversal)
 
-[PARTIEL] (2/28) :
+[PARTIEL] (1/28) :
 - §4.2 : Couverture de tests unitaires > 80%
-- §7.3 : Documentation interactive REST Swagger/OpenAPI
 
-[NON RÉALISÉ] (2/28) :
+[NON RÉALISÉ] (1/28) :
 - §5.4 : Algorithmes ML réels de prédiction d'attrition (Random Forest) et absences
-- §6 : Pipeline CI/CD (GitHub Actions) / Dockerfiles de production multi-stage
 
 ================================================================================

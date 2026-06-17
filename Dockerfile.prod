@@ -1,0 +1,23 @@
+# Stage 1: Build the Spring Boot application JAR
+FROM maven:3.9-eclipse-temurin-17 AS builder
+WORKDIR /build
+
+# Copy the maven files from the backend directory
+COPY nexus-erp/pom.xml .
+COPY nexus-erp/src ./src
+
+# Build the jar package skipping tests
+RUN mvn clean package -DskipTests
+
+# Stage 2: Runtime image using a lightweight alpine JRE
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+
+# Copy the generated JAR file from builder stage
+COPY --from=builder /build/target/*.jar app.jar
+
+# Expose port 8080 for application access
+EXPOSE 8080
+
+# Command to run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]

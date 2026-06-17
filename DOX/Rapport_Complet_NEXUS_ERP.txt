@@ -939,12 +939,12 @@ CDC §5.5 — Avancement : 25%
   │ §5.5     │ Widget chatbot conversationnel                          │  [✓]   │ Widget UI connecté à Gemini-2.5-flash                  │
   │ §5.5     │ LangChain4j + Claude API                                │  [✗]   │ Remplacé par intégration directe Google Gemini         │
   │ §5.5     │ Système de ticketing avec SLAs                          │  [✓]   │ SupportTicket JPA + alertes temps de réponse SLAs      │
-  │ §7.2     │ Documentation Swagger/OpenAPI                           │  [✗]   │ springdoc-openapi absent                               │
+  │ §7.2     │ Documentation Swagger/OpenAPI                           │  [✓]   │ Web UI, Bearer JWT Auth & endpoint whitelisting        │
   │ §7.3     │ Refresh tokens rotatifs                                 │  [✓]   │ RefreshToken JPA, rotation et sécurité                 │
   │ §7.3     │ RGPD (minimisation données, consentement)               │  [✓]   │ Chiffrement transparent RIB, minimisation API, path    │
   │ §4.2     │ Tests unitaires >80% couverture                         │  [~]   │ Tests complets sur RefreshToken, FileStorage, QR, etc. │
-  │ §6       │ Pipeline CI/CD GitHub Actions                           │  [✗]   │ Pas de workflows                                       │
-  │ §6       │ Dockerfiles production                                  │  [✗]   │ Pas de Dockerfiles individuels                         │
+  │ §6       │ Pipeline CI/CD GitHub Actions                           │  [✓]   │ Workflow ci-cd.yml exécutant mvn clean verify          │
+  │ §6       │ Dockerfiles production                                  │  [✓]   │ Dockerfile.prod multi-stage Eclipse Temurin JRE        │
   └──────────┴──────────────────────────────────────────────────────────┴────────┴───────────────────────────────────────────────────────┘
 
 
