@@ -7,7 +7,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 seconds timeout for standard requests
+  timeout: 60000, // 60 seconds timeout to accommodate slower AI and PDF operations
 });
 
 // Request Interceptor: Automatically inject JWT access token from Zustand store

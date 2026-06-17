@@ -20,6 +20,7 @@ public class DailyAttendanceDetail {
     private String checkOutTime;
     private Double hoursWorked;
     private Double overtimeHours;
+    private Double nightHours;
     private String status;
     private UUID trackingId;
 }

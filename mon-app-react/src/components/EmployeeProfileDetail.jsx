@@ -123,6 +123,11 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
   const [error, setError] = useState(null);
   const [detailTab, setDetailTab] = useState('infos');
   const [status, setStatus] = useState(null);
+  const [dynamicLocation, setDynamicLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [hierarchy, setHierarchy] = useState(null);
+  const [hierarchyLoading, setHierarchyLoading] = useState(false);
+  const [showHierarchy, setShowHierarchy] = useState(false);
 
   const { user } = useAuthStore();
 
@@ -155,10 +160,110 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
     };
 
     if (profileId) {
+      setHierarchy(null);
+      setShowHierarchy(false);
       fetchProfile();
       fetchStatus();
     }
   }, [profileId]);
+
+  useEffect(() => {
+    if (!profile) return;
+    
+    if (profile.workModel === 'OFFICE') {
+      setDynamicLocation('Poitiers, France');
+    } else if (profile.workModel === 'WFH') {
+      if (!navigator.geolocation) {
+        setDynamicLocation('Localisation non autorisée');
+        return;
+      }
+      setLocationLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+            if (!res.ok) {
+              throw new Error("Nominatim error");
+            }
+            const data = await res.json();
+            const address = data.address || {};
+            const city = address.city || address.town || address.village || address.municipality || address.county || address.state || "Inconnu";
+            const country = address.country || "Inconnu";
+            setDynamicLocation(`${city}, ${country}`);
+          } catch (err) {
+            console.error("Reverse geocoding error:", err);
+            setDynamicLocation("Localisation indisponible");
+          } finally {
+            setLocationLoading(false);
+          }
+        },
+        (error) => {
+          console.warn("Geolocation permission error:", error);
+          setDynamicLocation('Localisation non autorisée');
+          setLocationLoading(false);
+        },
+        { timeout: 10000 }
+      );
+    } else {
+      setDynamicLocation(profile.location || 'Poitiers, France');
+    }
+  }, [profile]);
+
+  const fetchHierarchy = async () => {
+    if (hierarchy) return; // déjà chargé
+    setHierarchyLoading(true);
+    try {
+      const res = await apiClient.get(`/api/v1/hr/profiles/${profileId}/hierarchy`);
+      setHierarchy(res.data);
+    } catch (err) {
+      console.error("Erreur lors du chargement de la hiérarchie:", err);
+      if (onShowToast) {
+        onShowToast("Erreur lors du chargement de la chaîne hiérarchique.", "error");
+      }
+    } finally {
+      setHierarchyLoading(false);
+    }
+  };
+
+  const handleToggleHierarchy = () => {
+    const nextShow = !showHierarchy;
+    setShowHierarchy(nextShow);
+    if (nextShow) {
+      fetchHierarchy();
+    }
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      if (onShowToast) {
+        onShowToast("Génération du PDF en cours...", "info");
+      }
+      const response = await apiClient.get(`/api/v1/employees/${profileId}/export-pdf`, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `employee_${profile.matricule || profileId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      if (onShowToast) {
+        onShowToast("PDF exporté avec succès !", "success");
+      }
+    } catch (err) {
+      console.error("Erreur lors de l'exportation du PDF:", err);
+      if (onShowToast) {
+        onShowToast("Erreur lors de l'exportation du PDF.", "error");
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -203,20 +308,30 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
 
   return (
     <div className="max-w-4xl mx-auto py-6">
-      {/* Back button */}
-      <button
-        onClick={() => {
-          if (isAuthorizedRole) {
-            navigate('/profils');
-          } else {
-            navigate('/tableau-de-bord');
-          }
-        }}
-        className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-blue-600 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-sm hover:shadow transition-all mb-6 active:scale-95"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        {isAuthorizedRole ? 'Retour à la liste des profils' : 'Retour au tableau de bord'}
-      </button>
+      {/* Navigation & Action buttons */}
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={() => {
+            if (isAuthorizedRole) {
+              navigate('/profils');
+            } else {
+              navigate('/tableau-de-bord');
+            }
+          }}
+          className="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-blue-600 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          {isAuthorizedRole ? 'Retour à la liste des profils' : 'Retour au tableau de bord'}
+        </button>
+
+        <button
+          onClick={handleExportPdf}
+          className="inline-flex items-center gap-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95"
+        >
+          <FileText className="h-3.5 w-3.5" />
+          Exporter en PDF
+        </button>
+      </div>
 
       {/* Main Container */}
       <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-3xl shadow-xl overflow-hidden">
@@ -350,7 +465,7 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
                   <InfoCard
                     icon={MapPin}
                     label="Localisation"
-                    value={profile.location}
+                    value={locationLoading ? "Recherche de localisation..." : (dynamicLocation || profile.location || "Non renseigné")}
                   />
                   <InfoCard
                     icon={Globe}
@@ -394,6 +509,103 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
                       <TrendingUp className="h-4 w-4 text-amber-500" />
                       Direction Générale — Aucun rattachement direct
                     </p>
+                  )}
+                </div>
+
+                {/* ACCORDION DE LA CHAÎNE HIÉRARCHIQUE DE COMMANDEMENT */}
+                <div className="mt-4 pt-3 border-t border-slate-100">
+                  <button
+                    onClick={handleToggleHierarchy}
+                    className="w-full flex items-center justify-between text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors py-1.5 focus:outline-none"
+                  >
+                    <span>Chaîne de commandement hiérarchique</span>
+                    <span className="text-xs">{showHierarchy ? '▲ Masquer' : '▼ Afficher'}</span>
+                  </button>
+                  
+                  {showHierarchy && (
+                    <div className="mt-4 bg-slate-50 border border-slate-100/50 rounded-2xl p-4 transition-all duration-300">
+                      {hierarchyLoading ? (
+                        <div className="flex items-center justify-center py-6 text-gray-400 gap-2">
+                          <Clock className="h-4 w-4 text-indigo-500 animate-spin" />
+                          <span className="text-[10px] font-semibold">Chargement de la chaîne hiérarchique...</span>
+                        </div>
+                      ) : hierarchy ? (
+                        (() => {
+                          const flatList = [];
+                          let curr = hierarchy;
+                          while (curr) {
+                            flatList.push(curr);
+                            curr = curr.manager;
+                          }
+                          flatList.reverse(); // du plus haut manager vers le profil ciblé
+                          
+                          return (
+                            <div className="relative pl-6 space-y-6 mt-2">
+                              {/* Ligne verticale de connexion */}
+                              {flatList.length > 1 && (
+                                <div className="absolute left-2.5 top-2.5 bottom-2.5 w-0.5 bg-gradient-to-b from-indigo-200 to-blue-200" />
+                              )}
+                              
+                              {flatList.map((node, index) => {
+                                const isCurrent = node.id === profile.id;
+                                const initials = `${node.firstName?.charAt(0) || ''}${node.lastName?.charAt(0) || ''}`.toUpperCase();
+                                
+                                return (
+                                  <div key={node.id} className="relative flex items-start gap-3.5 group">
+                                    {/* Point indicateur */}
+                                    <div className={`absolute -left-[22px] h-[10px] w-[10px] rounded-full border-2 top-[13px] z-10 transition-all duration-300 ${
+                                      isCurrent 
+                                        ? 'bg-blue-600 border-blue-100 scale-125 shadow-md shadow-blue-500/30' 
+                                        : 'bg-white border-indigo-400 group-hover:scale-110'
+                                    }`} />
+                                    
+                                    {/* Avatar / Initiales */}
+                                    <div className={`h-9 w-9 rounded-xl border flex items-center justify-center text-xs font-bold shrink-0 shadow-sm ${
+                                      isCurrent 
+                                        ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white border-blue-500' 
+                                        : 'bg-white text-gray-600 border-gray-200'
+                                    }`}>
+                                      {node.photoUrl ? (
+                                        <img src={node.photoUrl} alt="Photo" className="h-full w-full rounded-xl object-cover" />
+                                      ) : (
+                                        <span>{initials}</span>
+                                      )}
+                                    </div>
+                                    
+                                    {/* Carte descriptive */}
+                                    <div className={`flex-1 border p-3 rounded-2xl transition-all ${
+                                      isCurrent 
+                                        ? 'bg-blue-50/50 border-blue-100/80 shadow-sm' 
+                                        : 'bg-white border-slate-100 hover:border-slate-200'
+                                    }`}>
+                                      <div className="flex items-center justify-between">
+                                        <p className={`text-xs font-bold ${isCurrent ? 'text-blue-900' : 'text-gray-800'}`}>
+                                          {node.firstName} {node.lastName}
+                                        </p>
+                                        {isCurrent && (
+                                          <span className="text-[9px] bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 rounded font-extrabold shadow-sm">
+                                            Profil Actuel
+                                          </span>
+                                        )}
+                                        {index === 0 && !isCurrent && (
+                                          <span className="text-[9px] bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded font-extrabold">
+                                            Président / Top
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="text-[10px] text-gray-500 font-semibold mt-0.5">{node.jobTitle}</p>
+                                      <p className="text-[9px] text-gray-400 font-medium mt-1 uppercase tracking-wider">{node.department}</p>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        <p className="text-[10px] text-gray-400 italic text-center py-2">Aucune donnée hiérarchique.</p>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

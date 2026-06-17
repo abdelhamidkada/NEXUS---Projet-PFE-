@@ -8,6 +8,8 @@ import {
   User,
   Loader2
 } from 'lucide-react';
+import apiClient from '../api/apiClient';
+
 
 // ---------------------------------------------------------------------------
 // Mock Data (Initial Conversation)
@@ -55,7 +57,7 @@ export default function SmartAssistantWidget() {
     }
   }, [messages, isOpen]);
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
@@ -75,19 +77,33 @@ export default function SmartAssistantWidget() {
 
     // 2. Trigger Bot Auto-Response
     setIsTyping(true);
-    setTimeout(() => {
+    try {
+      const response = await apiClient.post('/api/v1/ai/chat', { message: query });
       setIsTyping(false);
       const botTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
       
       const botMsg = {
         id: Date.now() + 1,
         sender: 'bot',
-        text: `Je transfère votre demande au service RH (Création de ticket en cours...). Notre équipe traitera : "${query}"`,
+        text: response.data,
         time: botTime
       };
 
       setMessages(prev => [...prev, botMsg]);
-    }, 1000);
+    } catch (error) {
+      console.error('Erreur chatbot:', error);
+      setIsTyping(false);
+      const botTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      
+      const botMsg = {
+        id: Date.now() + 1,
+        sender: 'bot',
+        text: "Désolé, je rencontre des difficultés pour me connecter au service d'intelligence artificielle. Veuillez réessayer ultérieurement.",
+        time: botTime
+      };
+
+      setMessages(prev => [...prev, botMsg]);
+    }
   };
 
   return (

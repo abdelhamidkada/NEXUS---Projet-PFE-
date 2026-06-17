@@ -34,6 +34,10 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        if (userRepository.count() >= 13) {
+            System.out.println(">>> Base de données déjà initialisée par le DatabaseSeeder, saut du seeding.");
+            return;
+        }
         System.out.println(">>> DÉBUT DU SEEDING DE LA BASE DE DONNÉES (DyxIA)...");
 
         // 1. Purge complète des données transactionnelles, des compétences, des notifications et des profils/utilisateurs existants

@@ -17,5 +17,6 @@ public class DailyTimeReport {
     private LocalDate date;
     private Double totalHours;
     private Double overtimeHours;
+    private Double nightHours;
     private boolean isMissingCheckout;
 }

@@ -71,4 +71,13 @@ public class EmployeeProfileController {
         employeeProfileService.deleteProfile(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Endpoint GET pour récupérer la hiérarchie ascendante d'un employé.
+     */
+    @GetMapping("/{id}/hierarchy")
+    public ResponseEntity<com.dyxia.nexuserp.dto.EmployeeHierarchyResponse> getProfileHierarchy(@PathVariable Long id) {
+        com.dyxia.nexuserp.dto.EmployeeHierarchyResponse response = employeeProfileService.getUpwardHierarchy(id);
+        return ResponseEntity.ok(response);
+    }
 }

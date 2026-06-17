@@ -25,6 +25,9 @@ public interface EmployeeProfileRepository extends JpaRepository<EmployeeProfile
     @Query("SELECT ep FROM EmployeeProfile ep LEFT JOIN FETCH ep.user")
     List<EmployeeProfile> findAllWithUser();
 
+    @Query("SELECT ep FROM EmployeeProfile ep LEFT JOIN FETCH ep.user LEFT JOIN FETCH ep.hierarchie")
+    List<EmployeeProfile> findAllWithUserAndHierarchie();
+
     /**
      * Vérifie si un profil d'employé existe déjà pour un utilisateur donné.
      *
@@ -40,5 +43,13 @@ public interface EmployeeProfileRepository extends JpaRepository<EmployeeProfile
      * @return Un Optional contenant le profil.
      */
     Optional<EmployeeProfile> findByUser(User user);
+
+    /**
+     * Recherche un profil d'employé par son matricule.
+     *
+     * @param matricule Le matricule de l'employé.
+     * @return Un Optional contenant le profil de l'employé s'il existe.
+     */
+    Optional<EmployeeProfile> findByMatricule(String matricule);
 }
 

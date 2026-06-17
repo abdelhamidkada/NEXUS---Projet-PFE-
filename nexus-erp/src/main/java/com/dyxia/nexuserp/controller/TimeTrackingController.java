@@ -4,31 +4,29 @@ import com.dyxia.nexuserp.dto.DailyTimeReport;
 import com.dyxia.nexuserp.dto.MonthlyCycleReport;
 import com.dyxia.nexuserp.model.TimeTracking;
 import com.dyxia.nexuserp.service.TimeCalculationService;
+import com.dyxia.nexuserp.service.QrCodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 /**
- * Contrôleur REST pour la gestion et le calcul des pointages de présence (Time & Attendance).
+ * Contrôleur REST pour la gestion et le calcul des pointages de présence (Time & Attendance) et QR codes.
  */
 @RestController
-@RequestMapping("/api/v1/tracking")
 @RequiredArgsConstructor
 public class TimeTrackingController {
 
     private final TimeCalculationService timeCalculationService;
+    private final QrCodeService qrCodeService;
 
     /**
      * Endpoint POST pour enregistrer un nouveau pointage (CHECK_IN ou CHECK_OUT) pour un employé.
-     *
-     * @param employeeId L'identifiant du profil de l'employé.
-     * @param tracking   Les informations du pointage (latitude, longitude, type).
-     * @return Le pointage enregistré avec le statut 201 Created.
      */
-    @PostMapping
+    @PostMapping("/api/v1/tracking")
     public ResponseEntity<TimeTracking> recordTimeTracking(
             @RequestParam Long employeeId,
             @RequestBody TimeTracking tracking) {
@@ -38,12 +36,8 @@ public class TimeTrackingController {
 
     /**
      * Endpoint GET pour obtenir le rapport de temps de travail journalier d'un employé.
-     *
-     * @param employeeId L'identifiant du profil de l'employé.
-     * @param date       La date concernée au format YYYY-MM-DD.
-     * @return Le DTO DailyTimeReport avec le total des heures et les heures supplémentaires.
      */
-    @GetMapping("/report/{employeeId}")
+    @GetMapping("/api/v1/tracking/report/{employeeId}")
     public ResponseEntity<DailyTimeReport> getDailyTimeReport(
             @PathVariable Long employeeId,
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
@@ -52,13 +46,9 @@ public class TimeTrackingController {
     }
 
     /**
-     * Endpoint GET pour obtenir le rapport d'assiduité mensuel (cycle du 16 au 15) contenant la date donnée.
-     *
-     * @param employeeId L'identifiant du profil de l'employé.
-     * @param date       La date au format YYYY-MM-DD (optionnel, aujourd'hui par défaut).
-     * @return Le DTO MonthlyCycleReport.
+     * Endpoint GET pour obtenir le rapport d'assiduité mensuel.
      */
-    @GetMapping("/report/monthly/{employeeId}")
+    @GetMapping("/api/v1/tracking/report/monthly/{employeeId}")
     public ResponseEntity<MonthlyCycleReport> getMonthlyCycleReport(
             @PathVariable Long employeeId,
             @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
@@ -69,14 +59,20 @@ public class TimeTrackingController {
 
     /**
      * Endpoint POST permettant à un utilisateur RH d'outrepasser le statut late d'un pointage.
-     *
-     * @param trackingId L'UUID du pointage concerné.
-     * @return Le pointage mis à jour.
      */
-    @PostMapping("/override/{trackingId}")
+    @PostMapping("/api/v1/tracking/override/{trackingId}")
     @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('HR_ADMIN', 'DIRECTION')")
     public ResponseEntity<TimeTracking> overrideLatePunchIn(@PathVariable java.util.UUID trackingId) {
         TimeTracking updated = timeCalculationService.overrideLatePunchIn(trackingId);
         return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Endpoint GET pour générer un QR Code de pointage physique pour un collaborateur.
+     */
+    @GetMapping(value = "/api/v1/time-tracking/qr-code/{matricule}", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> generateEmployeeQrCode(@PathVariable String matricule) {
+        byte[] qrCodeImage = qrCodeService.generateEmployeeQrCode(matricule);
+        return ResponseEntity.ok(qrCodeImage);
     }
 }

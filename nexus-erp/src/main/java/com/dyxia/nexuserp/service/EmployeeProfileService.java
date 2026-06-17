@@ -333,4 +333,41 @@ public class EmployeeProfileService {
         }
         return "Moins d'un mois";
     }
+
+    /**
+     * Récupère la chaîne hiérarchique ascendante complète (jusqu'au président) pour un profil donné.
+     * Évite le problème N+1 en chargeant tous les profils avec une seule requête et en résolvant l'arbre en mémoire.
+     */
+    public EmployeeHierarchyResponse getUpwardHierarchy(Long profileId) {
+        EmployeeProfile targetProfile = employeeProfileRepository.findById(profileId)
+                .orElseThrow(() -> new ResourceNotFoundException("Profil employé non trouvé avec l'ID : " + profileId));
+
+        List<EmployeeProfile> allProfiles = employeeProfileRepository.findAllWithUserAndHierarchie();
+
+        java.util.Map<Long, EmployeeProfile> userToProfileMap = allProfiles.stream()
+                .filter(p -> p.getUser() != null)
+                .collect(java.util.stream.Collectors.toMap(p -> p.getUser().getId(), p -> p));
+
+        return buildHierarchyNode(targetProfile, userToProfileMap);
+    }
+
+    private EmployeeHierarchyResponse buildHierarchyNode(EmployeeProfile profile, java.util.Map<Long, EmployeeProfile> profileMap) {
+        EmployeeHierarchyResponse node = EmployeeHierarchyResponse.builder()
+                .id(profile.getId())
+                .firstName(profile.getUser() != null ? profile.getUser().getFirstName() : "")
+                .lastName(profile.getUser() != null ? profile.getUser().getLastName() : "")
+                .jobTitle(profile.getJobTitle())
+                .department(profile.getDepartment())
+                .photoUrl(profile.getPhotoUrl())
+                .build();
+
+        if (profile.getHierarchie() != null) {
+            Long managerUserId = profile.getHierarchie().getId();
+            EmployeeProfile managerProfile = profileMap.get(managerUserId);
+            if (managerProfile != null && !managerProfile.getId().equals(profile.getId())) {
+                node.setManager(buildHierarchyNode(managerProfile, profileMap));
+            }
+        }
+        return node;
+    }
 }

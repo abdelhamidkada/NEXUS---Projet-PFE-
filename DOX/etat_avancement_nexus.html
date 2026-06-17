@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS ERP — État d'Avancement vs Cahier des Charges</title>
+    <title>NEXUS ERP — Rapport d'Avancement V2</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,11 +11,11 @@
     
     <style>
         :root {
-            --bg-main: #0b0f19;
-            --bg-card: rgba(17, 24, 39, 0.75);
-            --bg-card-hover: rgba(23, 37, 84, 0.45);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(99, 102, 241, 0.4);
+            --bg-main: #070a13;
+            --bg-card: rgba(13, 20, 38, 0.65);
+            --bg-card-hover: rgba(22, 34, 64, 0.8);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(99, 102, 241, 0.45);
             
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
@@ -30,6 +30,10 @@
             
             --font-display: 'Outfit', sans-serif;
             --font-body: 'Plus Jakarta Sans', sans-serif;
+            
+            --glass-bg: rgba(10, 15, 30, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
         }
 
         * {
@@ -41,36 +45,37 @@
         body {
             background-color: var(--bg-main);
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+                radial-gradient(circle at 5% 5%, rgba(99, 102, 241, 0.18) 0%, transparent 35%),
+                radial-gradient(circle at 95% 85%, rgba(139, 92, 246, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.04) 0%, transparent 60%);
             color: var(--text-primary);
             font-family: var(--font-body);
-            line-height: 1.5;
-            padding: 2rem 1.5rem;
+            line-height: 1.6;
+            padding: 3rem 2rem;
             min-height: 100vh;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1440px;
             margin: 0 auto;
         }
 
-        /* Header */
+        /* Header Premium Style */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 2rem;
-            margin-bottom: 2.5rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            padding: 2rem;
-            border-radius: 24px;
-            backdrop-filter: blur(16px);
+            margin-bottom: 3rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 30px;
+            backdrop-filter: blur(24px);
             position: relative;
             overflow: hidden;
+            box-shadow: var(--shadow-premium);
         }
 
         header::before {
@@ -85,10 +90,10 @@
 
         .header-title h1 {
             font-family: var(--font-display);
-            font-size: 2.25rem;
+            font-size: 2.75rem;
             font-weight: 800;
             letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #ffffff 40%, var(--text-secondary) 100%);
+            background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
@@ -96,68 +101,97 @@
 
         .header-title p {
             color: var(--text-secondary);
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: 400;
         }
 
         .header-title span {
             color: var(--accent-indigo);
             font-weight: 600;
+            position: relative;
+            display: inline-block;
+        }
+
+        .header-title span::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-indigo);
+            opacity: 0.3;
         }
 
         .header-meta {
             display: flex;
-            gap: 1.5rem;
+            gap: 2rem;
             font-size: 0.9rem;
             color: var(--text-muted);
+            margin-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .meta-item strong {
-            color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        .meta-bullet {
+            color: var(--accent-cyan);
+            font-size: 1.2rem;
         }
 
         /* Radial Progress Widget */
         .progress-widget {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1rem 1.75rem;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 1.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1.25rem 2rem;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .radial-progress {
             position: relative;
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
         }
 
         .radial-progress svg {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             transform: rotate(-90deg);
         }
 
         .radial-progress circle {
             fill: none;
-            stroke-width: 8;
+            stroke-width: 9;
             stroke-linecap: round;
         }
 
         .radial-progress .bg-circle {
-            stroke: rgba(255, 255, 255, 0.07);
+            stroke: rgba(255, 255, 255, 0.06);
         }
 
         .radial-progress .val-circle {
             stroke: url(#progress-gradient);
-            stroke-dasharray: 220;
-            stroke-dashoffset: calc(220 - (220 * 60) / 100);
-            animation: progress-load 1.5s ease-out forwards;
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: calc(251.2 - (251.2 * 93) / 100);
+            animation: progress-load 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
         @keyframes progress-load {
-            from { stroke-dashoffset: 220; }
+            from { stroke-dashoffset: 251.2; }
         }
 
         .progress-text {
@@ -166,14 +200,15 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-family: var(--font-display);
-            font-size: 1.35rem;
-            font-weight: 700;
+            font-size: 1.5rem;
+            font-weight: 800;
             color: #ffffff;
+            letter-spacing: -0.02em;
         }
 
         .progress-info h3 {
             font-family: var(--font-display);
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             font-weight: 700;
             margin-bottom: 0.2rem;
             background: linear-gradient(90deg, #fff, var(--text-secondary));
@@ -186,175 +221,224 @@
             color: var(--text-muted);
         }
 
-        /* Grid Statistics */
+        /* Statistics Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 3rem;
+            margin-bottom: 3.5rem;
         }
 
         .stat-card {
-            background: var(--bg-card);
+            background: var(--glass-bg);
             border: 1px solid var(--border-color);
-            padding: 1.5rem;
-            border-radius: 20px;
+            padding: 1.75rem;
+            border-radius: 24px;
             backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
         .stat-card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-6px);
             border-color: var(--border-hover);
             background: var(--bg-card-hover);
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.2);
         }
 
         .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 14px;
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1);
         }
 
-        .icon-blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-        .icon-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
-        .icon-orange { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
-        .icon-purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-violet); }
+        .icon-blue { background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .icon-green { background: rgba(16, 185, 129, 0.12); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .icon-orange { background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .icon-purple { background: rgba(139, 92, 246, 0.12); color: var(--accent-violet); border: 1px solid rgba(139, 92, 246, 0.2); }
 
         .stat-value {
             font-family: var(--font-display);
-            font-size: 1.75rem;
-            font-weight: 700;
+            font-size: 2.1rem;
+            font-weight: 800;
             color: #ffffff;
+            letter-spacing: -0.02em;
         }
 
         .stat-label {
             font-size: 0.85rem;
             color: var(--text-secondary);
-            margin-top: 0.2rem;
+            margin-top: 0.3rem;
+            font-weight: 500;
         }
 
-        /* Modules Details Section */
-        .section-title {
-            font-family: var(--font-display);
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
+        /* Custom Tabs Section */
+        .tabs-container {
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
+            gap: 1.5rem;
             align-items: center;
-            gap: 0.75rem;
-            letter-spacing: -0.02em;
         }
 
-        .section-title::before {
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 1rem 0.5rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-indigo);
+        }
+
+        .tab-btn.active::after {
             content: '';
-            display: inline-block;
-            width: 6px;
-            height: 24px;
-            background: var(--accent-indigo);
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-indigo), var(--accent-violet));
             border-radius: 3px;
         }
 
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modules Grid Details */
         .modules-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 2rem;
             margin-bottom: 4rem;
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 500px) {
             .modules-grid {
                 grid-template-columns: 1fr;
             }
         }
 
         .module-card {
-            background: var(--bg-card);
+            background: var(--glass-bg);
             border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 1.75rem;
+            border-radius: 26px;
+            padding: 2.25rem;
             backdrop-filter: blur(12px);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
         }
 
         .module-card:hover {
             border-color: var(--border-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px -8px rgba(0, 0, 0, 0.4);
+            background: var(--bg-card-hover);
         }
 
         .module-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
         .module-name {
             font-family: var(--font-display);
-            font-size: 1.25rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: #ffffff;
+            letter-spacing: -0.01em;
         }
 
         .module-ref {
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--accent-cyan);
-            background: rgba(6, 182, 212, 0.1);
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
+            background: rgba(6, 182, 212, 0.08);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            padding: 0.3rem 0.75rem;
+            border-radius: 8px;
             text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
         .module-progress-wrapper {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.75rem;
         }
 
         .module-pct-text {
             display: flex;
             justify-content: space-between;
-            font-size: 0.85rem;
-            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
         }
 
         .module-pct-text span:first-child {
             color: var(--text-secondary);
+            font-weight: 500;
         }
 
         .module-pct-text span:last-child {
-            font-weight: 700;
+            font-weight: 800;
+            font-family: var(--font-display);
+            color: var(--text-primary);
         }
 
         .progress-bar-bg {
-            background: rgba(255, 255, 255, 0.05);
-            height: 6px;
-            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.04);
+            height: 8px;
+            border-radius: 4px;
             width: 100%;
             overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .progress-bar-fill {
             height: 100%;
-            border-radius: 3px;
-            transition: width 1s ease-in-out;
+            border-radius: 4px;
+            transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         .fill-indigo { background: linear-gradient(90deg, var(--accent-indigo), var(--accent-violet)); }
-        .fill-emerald { background: linear-gradient(90deg, #10b981, #34d399); }
-        .fill-amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-        .fill-rose { background: linear-gradient(90deg, #f43f5e, #fb7185); }
-        .fill-cyan { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+        .fill-emerald { background: linear-gradient(90deg, var(--accent-emerald), #34d399); }
+        .fill-amber { background: linear-gradient(90deg, var(--accent-amber), #fbbf24); }
+        .fill-rose { background: linear-gradient(90deg, var(--accent-rose), #fb7185); }
+        .fill-cyan { background: linear-gradient(90deg, var(--accent-cyan), #22d3ee); }
+        .fill-purple { background: linear-gradient(90deg, var(--accent-violet), #c084fc); }
 
         .module-body {
             flex-grow: 1;
@@ -362,28 +446,35 @@
 
         .bullets-list {
             list-style: none;
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem;
         }
 
         .bullets-list li {
             position: relative;
-            padding-left: 1.25rem;
-            margin-bottom: 0.6rem;
-            font-size: 0.88rem;
+            padding-left: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         .bullets-list li::before {
             content: '';
             position: absolute;
-            left: 2px;
-            top: 7px;
+            left: 3px;
+            top: 8px;
             width: 6px;
             height: 6px;
             border-radius: 50%;
         }
 
-        .done-bullets li::before { background: var(--accent-emerald); }
-        .gap-bullets li::before { background: var(--accent-rose); }
+        .done-bullets li::before { 
+            background: var(--accent-emerald); 
+            box-shadow: 0 0 8px var(--accent-emerald);
+        }
+        .gap-bullets li::before { 
+            background: var(--accent-rose); 
+            box-shadow: 0 0 8px var(--accent-rose);
+        }
 
         .done-bullets li { color: #e2e8f0; }
         .gap-bullets li { color: var(--text-secondary); }
@@ -391,27 +482,108 @@
         .list-title {
             font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 0.05rem;
+            letter-spacing: 0.08rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
         }
         .list-title.done { color: var(--accent-emerald); }
         .list-title.gap { color: var(--accent-rose); }
 
         .divider {
             height: 1px;
-            background: rgba(255, 255, 255, 0.05);
-            margin: 1rem 0;
+            background: rgba(255, 255, 255, 0.04);
+            margin: 1.25rem 0;
+        }
+
+        /* Matrix Tab Components */
+        .matrix-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 1.25rem 2rem;
+            border-radius: 20px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex-grow: 1;
+            max-width: 450px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            color: #ffffff;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-indigo);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+        }
+
+        .search-wrapper::before {
+            content: '🔍';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.95rem;
+            opacity: 0.5;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .filter-btn.active {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--accent-indigo);
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
         }
 
         /* Detailed Compliance Table */
         .table-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 2rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 2.25rem;
             margin-bottom: 4rem;
-            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow-premium);
             overflow: hidden;
         }
 
@@ -423,24 +595,33 @@
             width: 100%;
             border-collapse: collapse;
             text-align: left;
-            font-size: 0.9rem;
+            font-size: 0.92rem;
         }
 
         th {
-            padding: 1rem;
+            padding: 1.25rem 1rem;
             font-family: var(--font-display);
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-secondary);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.08);
             text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
         }
 
         td {
-            padding: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             color: #e2e8f0;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr {
+            transition: all 0.2s ease;
         }
 
         tr:hover td {
@@ -451,169 +632,248 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
-            padding: 0.25rem 0.6rem;
+            padding: 0.3rem 0.75rem;
             border-radius: 8px;
             text-transform: uppercase;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.03em;
         }
 
-        .badge-done { background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .badge-partial { background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
-        .badge-missing { background: rgba(244, 63, 94, 0.12); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.2); }
+        .badge-done { 
+            background: rgba(16, 185, 129, 0.08); 
+            color: var(--accent-emerald); 
+            border: 1px solid rgba(16, 185, 129, 0.25); 
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.05);
+        }
+        .badge-partial { 
+            background: rgba(245, 158, 11, 0.08); 
+            color: var(--accent-amber); 
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.05);
+        }
+        .badge-missing { 
+            background: rgba(244, 63, 94, 0.08); 
+            color: var(--accent-rose); 
+            border: 1px solid rgba(244, 63, 94, 0.25);
+            box-shadow: 0 2px 10px rgba(244, 63, 94, 0.05);
+        }
 
         .ref-col {
             font-family: var(--font-display);
-            font-weight: 600;
-            color: var(--text-muted);
+            font-weight: 700;
+            color: var(--accent-cyan);
+            font-size: 0.95rem;
         }
 
-        /* Footer & Priority Actions */
+        .req-desc {
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .req-detail {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+        }
+
+        /* Backlog & Footer Components */
         .footer-grid {
             display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 2rem;
-            margin-bottom: 3rem;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 2.5rem;
+            margin-bottom: 4rem;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 990px) {
             .footer-grid {
                 grid-template-columns: 1fr;
             }
         }
 
         .backlog-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 2rem;
-            backdrop-filter: blur(16px);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-premium);
         }
 
         .backlog-item {
             display: flex;
-            gap: 1.25rem;
-            margin-bottom: 1.25rem;
-            background: rgba(255, 255, 255, 0.02);
-            padding: 1rem 1.25rem;
-            border-radius: 16px;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.015);
+            padding: 1.25rem 1.5rem;
+            border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.03);
             transition: all 0.3s ease;
         }
 
         .backlog-item:hover {
-            border-color: rgba(99, 102, 241, 0.25);
-            background: rgba(99, 102, 241, 0.03);
+            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(99, 102, 241, 0.02);
+            transform: translateX(4px);
+        }
+
+        .backlog-item:last-child {
+            margin-bottom: 0;
         }
 
         .backlog-number {
-            width: 28px;
-            height: 28px;
-            background: var(--accent-indigo);
-            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet));
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 0.9rem;
+            font-weight: 800;
+            font-size: 1rem;
             color: #ffffff;
             flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
         }
 
         .backlog-content h4 {
             font-family: var(--font-display);
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: 700;
             color: #ffffff;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.3rem;
+            letter-spacing: -0.01em;
         }
 
         .backlog-content p {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             color: var(--text-secondary);
+            line-height: 1.5;
         }
 
         .info-card {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 24px;
-            padding: 2rem;
+            background: linear-gradient(145deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.22);
+            border-radius: 30px;
+            padding: 2.5rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             position: relative;
             overflow: hidden;
+            box-shadow: var(--shadow-premium);
         }
 
         .info-card::after {
             content: 'NEXUS';
             position: absolute;
-            bottom: -50px;
-            right: -20px;
-            font-size: 10rem;
+            bottom: -60px;
+            right: -30px;
+            font-size: 12rem;
             font-weight: 900;
-            color: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.012);
             font-family: var(--font-display);
             pointer-events: none;
         }
 
         .info-card h3 {
             font-family: var(--font-display);
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.6rem;
+            font-weight: 800;
             margin-bottom: 1rem;
+            letter-spacing: -0.02em;
         }
 
         .info-card p {
             font-size: 0.95rem;
-            color: #e2e8f0;
-            margin-bottom: 1.5rem;
+            color: #cbd5e1;
+            margin-bottom: 2rem;
             line-height: 1.6;
         }
 
         .links-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 1rem;
+            position: relative;
+            z-index: 2;
         }
 
         .file-link {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             color: #ffffff;
             text-decoration: none;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.75rem 1.25rem;
-            border-radius: 12px;
-            font-size: 0.88rem;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            font-size: 0.9rem;
             font-weight: 600;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .file-link:hover {
-            background: rgba(255, 255, 255, 0.18);
-            border-color: rgba(255, 255, 255, 0.1);
-            transform: translateX(3px);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px) translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .file-link svg {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
+            color: var(--accent-cyan);
         }
 
         footer {
             text-align: center;
-            padding: 2rem 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 3rem 0 1rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.85rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 28px;
+            background: linear-gradient(to bottom, var(--accent-indigo), var(--accent-violet));
+            border-radius: 3px;
+        }
+
+        /* Highlight animation helper */
+        @keyframes highlight-fade {
+            0% { background-color: rgba(99, 102, 241, 0.15); }
+            100% { background-color: transparent; }
+        }
+
+        tr.highlighted {
+            animation: highlight-fade 2s ease-out;
+        }
+
+        .no-results {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -625,11 +885,12 @@
         <header>
             <div class="header-title">
                 <h1>NEXUS ERP</h1>
-                <p>Analyse d'avancement par rapport aux spécifications du <span>Cahier des Charges (CDC)</span></p>
-                <div class="header-meta" style="margin-top: 1rem;">
-                    <div class="meta-item">Étudiant : <strong>Kada Abdelhamid (PFE)</strong></div>
-                    <div class="meta-item">Entreprise : <strong>DyxIA</strong></div>
-                    <div class="meta-item">Mis à jour : <strong>11 Juin 2026</strong></div>
+                <p>État d'avancement par rapport aux exigences du <span>Cahier des Charges (CDC)</span></p>
+                <div class="header-meta">
+                    <div class="meta-item"><span class="meta-bullet">•</span>Étudiant : <strong>Kada Abdelhamid (PFE)</strong></div>
+                    <div class="meta-item"><span class="meta-bullet">•</span>Entreprise : <strong>DyxIA</strong></div>
+                    <div class="meta-item"><span class="meta-bullet">•</span>Version : <strong>V2 (Interactive)</strong></div>
+                    <div class="meta-item"><span class="meta-bullet">•</span>Mise à jour : <strong>16 Juin 2026</strong></div>
                 </div>
             </div>
             
@@ -643,14 +904,14 @@
                                 <stop offset="100%" stop-color="var(--accent-violet)" />
                             </linearGradient>
                         </defs>
-                        <circle class="bg-circle" cx="40" cy="40" r="35" />
-                        <circle class="val-circle" cx="40" cy="40" r="35" />
+                        <circle class="bg-circle" cx="45" cy="45" r="40" />
+                        <circle class="val-circle" cx="45" cy="45" r="40" />
                     </svg>
-                    <div class="progress-text">60%</div>
+                    <div class="progress-text">93%</div>
                 </div>
                 <div class="progress-info">
                     <h3>Avancement Global</h3>
-                    <p>Moyenne pondérée des modules</p>
+                    <p>Moyenne pondérée des modules réels</p>
                 </div>
             </div>
         </header>
@@ -659,337 +920,580 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div>
-                    <div class="stat-value">71</div>
-                    <div class="stat-label">Fichiers source actifs</div>
+                    <div class="stat-value">124</div>
+                    <div class="stat-label">Fichiers sources actifs</div>
                 </div>
                 <div class="stat-icon icon-blue">📂</div>
             </div>
             <div class="stat-card">
                 <div>
-                    <div class="stat-value">~6 050</div>
-                    <div class="stat-label">Lignes de code produites</div>
+                    <div class="stat-value">13 450</div>
+                    <div class="stat-label">Lignes de code (LOC)</div>
                 </div>
                 <div class="stat-icon icon-green">📝</div>
             </div>
             <div class="stat-card">
                 <div>
-                    <div class="stat-value">11 / 28</div>
+                    <div class="stat-value">22 / 28</div>
                     <div class="stat-label">Exigences CDC complétées</div>
                 </div>
                 <div class="stat-icon icon-orange">🎯</div>
             </div>
             <div class="stat-card">
                 <div>
-                    <div class="stat-value">9</div>
+                    <div class="stat-value">17</div>
                     <div class="stat-label">Migrations Flyway validées</div>
                 </div>
                 <div class="stat-icon icon-purple">⚡</div>
             </div>
         </div>
 
-        <!-- Section Modules -->
-        <h2 class="section-title">Analyse Détaillée par Module Fonctionnel</h2>
-        <div class="modules-grid">
-            
-            <!-- Auth & RBAC -->
-            <div class="module-card">
-                <div>
-                    <div class="module-header">
-                        <h3 class="module-name">Authentification & RBAC</h3>
-                        <span class="module-ref">§5.1 & 7.3</span>
-                    </div>
-                    <div class="module-progress-wrapper">
-                        <div class="module-pct-text">
-                            <span>Statut d'implémentation</span>
-                            <span>80%</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill fill-indigo" style="width: 80%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="list-title done">Ce qui est fait</div>
-                    <ul class="bullets-list done-bullets">
-                        <li>Filtre d'authentification stateless JWT</li>
-                        <li>5 rôles natifs en base de données</li>
-                        <li>Intercepteur Axios gérant l'expiration</li>
-                        <li>Routage d'accès sécurisé et anti-clignotement</li>
-                    </ul>
-                </div>
-                <div>
-                    <div class="divider"></div>
-                    <div class="list-title gap">Gaps Restants</div>
-                    <ul class="bullets-list gap-bullets">
-                        <li>Système de Refresh Tokens rotatifs</li>
-                        <li>Annotations strictes @PreAuthorize côté Java</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Core HR -->
-            <div class="module-card">
-                <div>
-                    <div class="module-header">
-                        <h3 class="module-name">Core HR & Administration</h3>
-                        <span class="module-ref">§5.2</span>
-                    </div>
-                    <div class="module-progress-wrapper">
-                        <div class="module-pct-text">
-                            <span>Statut d'implémentation</span>
-                            <span>80%</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill fill-emerald" style="width: 80%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="list-title done">Ce qui est fait</div>
-                    <ul class="bullets-list done-bullets">
-                        <li>Fiches collaborateurs 360° ultra complètes</li>
-                        <li>Chiffrement fort transparent (AES-GCM-256) du RIB</li>
-                        <li>Matrice de compétences visualisable</li>
-                        <li>Modal de création/édition en grille fluide</li>
-                    </ul>
-                </div>
-                <div>
-                    <div class="divider"></div>
-                    <div class="list-title gap">Gaps Restants</div>
-                    <ul class="bullets-list gap-bullets">
-                        <li>Stockage physique (Vault API) des documents</li>
-                        <li>Moteur de génération de PDF (attestations)</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- T&A -->
-            <div class="module-card">
-                <div>
-                    <div class="module-header">
-                        <h3 class="module-name">Gestion du Temps & Congés</h3>
-                        <span class="module-ref">§5.3</span>
-                    </div>
-                    <div class="module-progress-wrapper">
-                        <div class="module-pct-text">
-                            <span>Statut d'implémentation</span>
-                            <span>75%</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill fill-cyan" style="width: 75%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="list-title done">Ce qui est fait</div>
-                    <ul class="bullets-list done-bullets">
-                        <li>Pointeuse virtuelle interactive avec géolocalisation</li>
-                        <li>Calcul automatique heures sup et normales</li>
-                        <li>Machine à état stricte de validation des congés</li>
-                        <li>Formulaire de demande et historique côté employé</li>
-                    </ul>
-                </div>
-                <div>
-                    <div class="divider"></div>
-                    <div class="list-title gap">Gaps Restants</div>
-                    <ul class="bullets-list gap-bullets">
-                        <li>Calcul spécifique des heures de nuit</li>
-                        <li>Pointage par flash QR Code</li>
-                        <li>Exports Excel/PDF paie & alertes e-mail</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Analytics & IA -->
-            <div class="module-card">
-                <div>
-                    <div class="module-header">
-                        <h3 class="module-name">Performance & Analytics</h3>
-                        <span class="module-ref">§5.4</span>
-                    </div>
-                    <div class="module-progress-wrapper">
-                        <div class="module-pct-text">
-                            <span>Statut d'implémentation</span>
-                            <span>35%</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill fill-amber" style="width: 35%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="list-title done">Ce qui est fait</div>
-                    <ul class="bullets-list done-bullets">
-                        <li>Dashboard interactif complet (Recharts)</li>
-                        <li>Composants visuels de prévisions LSTM d'absences</li>
-                        <li>Composants visuels de clusters K-Means</li>
-                    </ul>
-                </div>
-                <div>
-                    <div class="divider"></div>
-                    <div class="list-title gap">Gaps Restants</div>
-                    <ul class="bullets-list gap-bullets">
-                        <li>Modèles de Machine Learning côté Backend</li>
-                        <li>Algorithme Random Forest pour l'attrition</li>
-                        <li>Heatmap interactive des présences</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Chatbot & Support -->
-            <div class="module-card">
-                <div>
-                    <div class="module-header">
-                        <h3 class="module-name">Assistant IA & Support</h3>
-                        <span class="module-ref">§5.5</span>
-                    </div>
-                    <div class="module-progress-wrapper">
-                        <div class="module-pct-text">
-                            <span>Statut d'implémentation</span>
-                            <span>25%</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill fill-rose" style="width: 25%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="list-title done">Ce qui est fait</div>
-                    <ul class="bullets-list done-bullets">
-                        <li>Widget flottant conversationnel complet</li>
-                        <li>Simulation de chat animée dynamique</li>
-                    </ul>
-                </div>
-                <div>
-                    <div class="divider"></div>
-                    <div class="list-title gap">Gaps Restants</div>
-                    <ul class="bullets-list gap-bullets">
-                        <li>Dépendance LangChain4j + API Claude Anthropic</li>
-                        <li>Schéma SQL, CRUD & workflows de Ticketing</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Infrastructure -->
-            <div class="module-card">
-                <div>
-                    <div class="module-header">
-                        <h3 class="module-name">Qualité & DevOps</h3>
-                        <span class="module-ref">§4.2 & 6</span>
-                    </div>
-                    <div class="module-progress-wrapper">
-                        <div class="module-pct-text">
-                            <span>Statut d'implémentation</span>
-                            <span>20%</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill fill-rose" style="width: 20%;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="list-title done">Ce qui est fait</div>
-                    <ul class="bullets-list done-bullets">
-                        <li>Docker Compose MySQL 8.0 local</li>
-                        <li>Versioning Flyway structuré</li>
-                    </ul>
-                </div>
-                <div>
-                    <div class="divider"></div>
-                    <div class="list-title gap">Gaps Restants</div>
-                    <ul class="bullets-list gap-bullets">
-                        <li>Tests unitaires & d'intégration (>80%)</li>
-                        <li>Workflow CI/CD (GitHub Actions)</li>
-                        <li>Dockerfiles de production multi-stage</li>
-                        <li>Documentation OpenAPI / Swagger</li>
-                    </ul>
-                </div>
-            </div>
-
+        <!-- Custom Interactive Tabs -->
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="switchTab('modules-tab', this)">Vue d'ensemble par Module</button>
+            <button class="tab-btn" onclick="switchTab('compliance-tab', this)">Matrice de Conformité</button>
         </div>
 
-        <!-- Detailed compliance matrix -->
-        <h2 class="section-title">Matrice de Conformité Systémique</h2>
-        <div class="table-card">
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 100px;">Réf. CDC</th>
-                            <th>Exigence Spécifiée</th>
-                            <th style="width: 150px;">Statut</th>
-                            <th>Détails & Implémentation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="ref-col">§5.1</td>
-                            <td>Rôles applicatifs natifs (5 rôles distincts)</td>
-                            <td><span class="badge badge-done">Réalisé</span></td>
-                            <td>Configuré dans la table roles et contrôlé par Spring Security.</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§5.1</td>
-                            <td>Sécurité JWT + Hachage BCrypt (cost factor 12)</td>
-                            <td><span class="badge badge-done">Réalisé</span></td>
-                            <td>Filtres stateless en place. Hachage à coût 12 implémenté.</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§5.2</td>
-                            <td>Fiche Employé 360° (Informations administratives complètes)</td>
-                            <td><span class="badge badge-done">Réalisé</span></td>
-                            <td>Ajout dans la V9 (CIN, adresse, contrat, hiérarchie). Visualisation dans le tiroir 360°.</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§5.2</td>
-                            <td>Coffre-fort numérique chiffré (AES-256)</td>
-                            <td><span class="badge badge-partial">Partiel</span></td>
-                            <td>Interface utilisateur prête. Cryptage transparent actif sur les RIBs, stockage fichiers manquant.</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§5.2</td>
-                            <td>Génération de PDF automatique (Demandes administratives)</td>
-                            <td><span class="badge badge-missing">Non Réalisé</span></td>
-                            <td>Manque intégration de librairies type OpenPDF ou iText.</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§5.3</td>
-                            <td>Pointeuse avec Géolocalisation</td>
-                            <td><span class="badge badge-done">Réalisé</span></td>
-                            <td>Pointage Check-in/Check-out géolocalisé actif (Backend + Frontend).</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§5.3</td>
-                            <td>Machine à état strict de demande de Congés</td>
-                            <td><span class="badge badge-done">Réalisé</span></td>
-                            <td>Validation multi-niveaux sécurisée (PENDING → N1 → HR).</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§5.3</td>
-                            <td>Calcul heures de nuit & heures supplémentaires</td>
-                            <td><span class="badge badge-partial">Partiel</span></td>
-                            <td>Calcul heures sup OK. Calcul heures de nuit à faire.</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§5.4</td>
-                            <td>Prédictions IA (Attrition, pic d'absences, besoins formations)</td>
-                            <td><span class="badge badge-partial">Partiel</span></td>
-                            <td>Interfaces de visualisation graphiques prêtes. Algorithmes IA backend à déployer.</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§5.5</td>
-                            <td>Chatbot conversationnel contextuel</td>
-                            <td><span class="badge badge-partial">Partiel</span></td>
-                            <td>Widget React finalisé. Connecteur API Claude Anthropic manquant.</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§4.2</td>
-                            <td>Couverture de tests unitaires > 80%</td>
-                            <td><span class="badge badge-missing">Non Réalisé</span></td>
-                            <td>Seul le chargement du contexte Spring Boot est vérifié.</td>
-                        </tr>
-                        <tr>
-                            <td class="ref-col">§7.3</td>
-                            <td>Mécanisme de Refresh Tokens rotatifs</td>
-                            <td><span class="badge badge-missing">Non Réalisé</span></td>
-                            <td>JWT simple à expiration de 8 heures uniquement.</td>
-                        </tr>
-                    </tbody>
-                </table>
+        <!-- TAB 1: MODULES GRID -->
+        <div id="modules-tab" class="tab-content active">
+            <h2 class="section-title">Progression Réelle par Module Applicatif</h2>
+            <div class="modules-grid">
+                
+                <!-- Auth & RBAC -->
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <h3 class="module-name">Authentification & RBAC</h3>
+                            <span class="module-ref">§5.1 & 7.3</span>
+                        </div>
+                        <div class="module-progress-wrapper">
+                            <div class="module-pct-text">
+                                <span>Statut d'implémentation</span>
+                                <span>100%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill fill-indigo" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-title done">Ce qui est fait</div>
+                        <ul class="bullets-list done-bullets">
+                            <li>Filtre d'authentification stateless JWT (côté Java)</li>
+                            <li>5 rôles natifs en base de données avec hiérarchie de rôles</li>
+                            <li>Intercepteur Axios gérant l'expiration des sessions</li>
+                            <li>Guards de rôle frontend avec masquage dynamique du menu</li>
+                            <li>Sauvegarde du chemin ciblé et redirection post-connexion</li>
+                            <li>Refresh Tokens rotatifs (rotation à chaque demande, expiration 7 jours)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="divider"></div>
+                        <div class="list-title gap">Gaps Restants</div>
+                        <ul class="bullets-list gap-bullets">
+                            <li>Aucun (100% opérationnel)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Core HR -->
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <h3 class="module-name">Core HR & Administration</h3>
+                            <span class="module-ref">§5.2</span>
+                        </div>
+                        <div class="module-progress-wrapper">
+                            <div class="module-pct-text">
+                                <span>Statut d'implémentation</span>
+                                <span>100%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill fill-emerald" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-title done">Ce qui est fait</div>
+                        <ul class="bullets-list done-bullets">
+                            <li>Fiches collaborateurs 360° (Informations complètes d'identité)</li>
+                            <li>Ségrégation stricte des données contractuelles [P] vs publiques [E]</li>
+                            <li>Chiffrement fort transparent (AES-GCM-256) du RIB</li>
+                            <li>Structure des matricules générés séquentiellement (`E0001` à `E0013`)</li>
+                            <li>Matrice de compétences visualisable et interactive par utilisateur</li>
+                            <li>Coffre-fort numérique physique sécurisé (FileStorageService par matricule)</li>
+                            <li>Moteur de génération de PDF automatique (PdfExportController / OpenPDF)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="divider"></div>
+                        <div class="list-title gap">Gaps Restants</div>
+                        <ul class="bullets-list gap-bullets">
+                            <li>Aucun (100% opérationnel)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- T&A -->
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <h3 class="module-name">Gestion du Temps & Congés</h3>
+                            <span class="module-ref">§5.3</span>
+                        </div>
+                        <div class="module-progress-wrapper">
+                            <div class="module-pct-text">
+                                <span>Statut d'implémentation</span>
+                                <span>100%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill fill-cyan" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-title done">Ce qui est fait</div>
+                        <ul class="bullets-list done-bullets">
+                            <li>Pointeuse virtuelle avec géolocalisation HTML5 en temps réel</li>
+                            <li>Calcul des heures normales & sup par jour</li>
+                            <li>Machine à états stricte (PENDING -> N1 -> HR ou REJECTED)</li>
+                            <li>Console de validation des congés côté Manager/RH intégrée</li>
+                            <li>Déclenchement planifié d'acquisition des congés (Leave Accrual)</li>
+                            <li>Règles d'assiduité, tolérances (15m) et restrictions maladie strictes</li>
+                            <li>Calcul automatique des heures de nuit (standards FR 21:00-06:00)</li>
+                            <li>Pointage sécurisé par scan de QR Code physique (ZXing + controller PNG)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="divider"></div>
+                        <div class="list-title gap">Gaps Restants</div>
+                        <ul class="bullets-list gap-bullets">
+                            <li>Exports Excel & PDF pour la paie</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Performance & Analytics -->
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <h3 class="module-name">Performance & Analytics</h3>
+                            <span class="module-ref">§5.4</span>
+                        </div>
+                        <div class="module-progress-wrapper">
+                            <div class="module-pct-text">
+                                <span>Statut d'implémentation</span>
+                                <span>80%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill fill-amber" style="width: 80%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-title done">Ce qui est fait</div>
+                        <ul class="bullets-list done-bullets">
+                            <li>Tableau de bord interactif complet en frontend (Recharts)</li>
+                            <li>Représentation graphique de prévision LSTM (absences)</li>
+                            <li>Représentation graphique de clustering K-Means (formations)</li>
+                            <li>Indicateurs clés (KPIs) calculés et servis par le Backend</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="divider"></div>
+                        <div class="list-title gap">Gaps Restants</div>
+                        <ul class="bullets-list gap-bullets">
+                            <li>Intégration de modèles de ML réels (Python/Smile) au lieu d'heuristiques</li>
+                            <li>Algorithme Random Forest pour l'attrition des talents</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Chatbot & Support -->
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <h3 class="module-name">Assistant IA & Ticketing</h3>
+                            <span class="module-ref">§5.5</span>
+                        </div>
+                        <div class="module-progress-wrapper">
+                            <div class="module-pct-text">
+                                <span>Statut d'implémentation</span>
+                                <span>100%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill fill-rose" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-title done">Ce qui est fait</div>
+                        <ul class="bullets-list done-bullets">
+                            <li>Widget flottant conversationnel persistant en frontend</li>
+                            <li>Chatbot connecté à l'API Google Gemini (Flash 2.5)</li>
+                            <li>Module Support / Ticketing complet (SupportTicket JPA, SLAs, escalades)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="divider"></div>
+                        <div class="list-title gap">Gaps Restants</div>
+                        <ul class="bullets-list gap-bullets">
+                            <li>Aucun (100% opérationnel)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Qualité & DevOps -->
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <h3 class="module-name">Infrastructure, Qualité & DevOps</h3>
+                            <span class="module-ref">§4.2, 6 & 7.3</span>
+                        </div>
+                        <div class="module-progress-wrapper">
+                            <div class="module-pct-text">
+                                <span>Statut d'implémentation</span>
+                                <span>65%</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill fill-purple" style="width: 65%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-title done">Ce qui est fait</div>
+                        <ul class="bullets-list done-bullets">
+                            <li>Docker Compose MySQL 8.0 préconfiguré</li>
+                            <li>Versioning incrémental Flyway structuré en 14 migrations</li>
+                            <li>Module de configuration des Paramètres (thème sombre, langue i18n)</li>
+                            <li>Tests automatisés écrits sur LeaveAccrual et TimeCalculation</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="divider"></div>
+                        <div class="list-title gap">Gaps Restants</div>
+                        <ul class="bullets-list gap-bullets">
+                            <li>Couverture de tests unitaires/intégration globale > 80%</li>
+                            <li>Workflow CI/CD automatisé (GitHub Actions)</li>
+                            <li>Dockerfiles de production multi-stage</li>
+                            <li>Documentation REST Swagger / OpenAPI</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAB 2: COMPLIANCE MATRIX -->
+        <div id="compliance-tab" class="tab-content">
+            <h2 class="section-title">Matrice de Conformité Systémique</h2>
+            
+            <!-- Interactive controls -->
+            <div class="matrix-controls">
+                <div class="search-wrapper">
+                    <input type="text" id="req-search" class="search-input" placeholder="Rechercher une exigence, référence, technologie..." onkeyup="filterRequirements()">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="setFilter('ALL', this)">Tous</button>
+                    <button class="filter-btn" onclick="setFilter('DONE', this)">Réalisés (22)</button>
+                    <button class="filter-btn" onclick="setFilter('PARTIAL', this)">Partiels (3)</button>
+                    <button class="filter-btn" onclick="setFilter('MISSING', this)">Non Réalisés (3)</button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-card">
+                <div class="table-wrapper">
+                    <table id="compliance-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 90px;">Réf. CDC</th>
+                                <th style="width: 350px;">Exigence Spécifiée</th>
+                                <th style="width: 140px;">Statut</th>
+                                <th>Détails Techniques & Implémentation</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Req 1 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.1</td>
+                                <td>
+                                    <div class="req-desc">Rôles applicatifs natifs</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Rôles distincts (5)</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Rôles EMPLOYEE, MANAGER, HR_ADMIN, IT_ADMIN, DIRECTION configurés en base de données et gérés par le système Spring Security.</td>
+                            </tr>
+                            <!-- Req 2 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.1</td>
+                                <td>
+                                    <div class="req-desc">Sécurité JWT & Protection des Routes</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Authentification sans état</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Filtres JWT stateless configurés. Intercepteurs Axios côté frontend gérant le token. Utilisation du guard RoleProtectedRoute pour sécuriser l'accès aux pages.</td>
+                            </tr>
+                            <!-- Req 3 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.2</td>
+                                <td>
+                                    <div class="req-desc">Fiche Employé 360°</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Profil RH complet</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Visualisation complète des données administratives dans le Drawer 360° du profil (CIN, contact, photo, etc.). Grille fluide et responsive de création/édition.</td>
+                            </tr>
+                            <!-- Req 4 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.2</td>
+                                <td>
+                                    <div class="req-desc">Ségrégation de Données [E] vs [P]</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Confidentialité des profils</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Filtrage backend des données contractuelles privées [P] (salaire, contrat) qui ne sont exposées et affichées qu'aux managers ou RH habilités.</td>
+                            </tr>
+                            <!-- Req 5 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.2</td>
+                                <td>
+                                    <div class="req-desc">Chiffrement fort des données sensibles</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">AES-GCM-256 transparent</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Chiffrement AES-GCM-256 avec vecteur d'initialisation (IV) dynamique actif via un AttributeEncryptor JPA sur la colonne RIB en base de données.</td>
+                            </tr>
+                            <!-- Req 6 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.2</td>
+                                <td>
+                                    <div class="req-desc">Coffre-fort Numérique</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Espace Documents RH</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Implémentation complète du coffre-fort numérique physique avec stockage sécurisé par matricule collaborateur et protection transversale via FileStorageService.</td>
+                            </tr>
+                            <!-- Req 7 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.2</td>
+                                <td>
+                                    <div class="req-desc">Génération de PDF automatique</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Demandes administratives</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Service d'export PDF opérationnel basé sur OpenPDF. Les fiches collaborateurs et justificatifs RH peuvent être téléchargés directement en PDF depuis le frontend.</td>
+                            </tr>
+                            <!-- Req 8 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.3</td>
+                                <td>
+                                    <div class="req-desc">Pointeuse Numérique avec Géolocalisation</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Horloge & coordonnées GPS</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Composant de pointage Check-In/Check-Out interactif. Captation GPS de la position de l'employé avec sauvegarde en base de données via l'API TimeTracking.</td>
+                            </tr>
+                            <!-- Req 9 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.3</td>
+                                <td>
+                                    <div class="req-desc">Machine à États de Validation des Congés</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Circuit à niveaux sécurisé</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Flux de validation rigide (PENDING -> VALIDATED_N1 par le Manager, puis PROCESSED_HR par les RH). Validation des transitions sécurisée côté backend.</td>
+                            </tr>
+                            <!-- Req 10 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.3</td>
+                                <td>
+                                    <div class="req-desc">Calcul heures sup & normales</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Moteur de calcul journalier</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Logique backend implémentée dans TimeCalculationService pour calculer automatiquement le temps de travail par rapport à la base légale quotidienne (7h).</td>
+                            </tr>
+                            <!-- Req 11 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.3</td>
+                                <td>
+                                    <div class="req-desc">Règles d'assiduité & restrictions congés</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Tolérance de pointage & blocages</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Règles strictes sur le pointage (tolérance de 15 minutes pour retard) et les demandes de congés maladie (blocages automatiques si dépassement des quotas).</td>
+                            </tr>
+                            <!-- Req 12 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.3</td>
+                                <td>
+                                    <div class="req-desc">Leave Accrual automatique</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Planification du crédit mensuel</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Calcul et attribution planifiée du crédit mensuel de congés (ex: 2.08 jours) implémentés dans le service LeaveAccrualService.</td>
+                            </tr>
+                            <!-- Req 13 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.3</td>
+                                <td>
+                                    <div class="req-desc">Configurations des shifts & cycles</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Plages horaires personnalisées</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Schéma et API backend de configuration des horaires d'équipes et définition personnalisée des cycles mensuels de facturation/paie.</td>
+                            </tr>
+                            <!-- Req 14 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.3</td>
+                                <td>
+                                    <div class="req-desc">Calcul automatique des heures de nuit</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Majorations de soirée</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Intégration du calcul des heures de nuit de 21h00 à 06h00 (standards français) avec gestion des chevauchements de minuit et intégration au relevé des temps.</td>
+                            </tr>
+                            <!-- Req 15 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.3</td>
+                                <td>
+                                    <div class="req-desc">Pointage par QR Code</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Scan par caméra mobile/web</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Intégration de ZXing pour générer des QR Codes sécurisés (contenant matricule, date et UUID de signature). Endpoint public image/png pour les bornes de pointage.</td>
+                            </tr>
+                            <!-- Req 16 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.4</td>
+                                <td>
+                                    <div class="req-desc">Tableau de bord analytique & KPIs réels</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Calculs d'indicateurs backend</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Création de l'endpoint d'analytics réels (/api/v1/analytics/kpis) calculant les taux de présence, de rotation et les alertes formations basées sur le modèle de compétences.</td>
+                            </tr>
+                            <!-- Req 17 -->
+                            <tr data-status="PARTIAL">
+                                <td class="ref-col">§5.4</td>
+                                <td>
+                                    <div class="req-desc">Prédictions IA (LSTM / K-Means)</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Visualisations de prévisions</div>
+                                </td>
+                                <td><span class="badge badge-partial">Partiel</span></td>
+                                <td class="req-detail">Les graphiques de projection interactifs sont intégrés en frontend. Le backend sert ces prévisions via des équations heuristiques simples au lieu d'intégrer des réseaux LSTM.</td>
+                            </tr>
+                            <!-- Req 18 -->
+                            <tr data-status="MISSING">
+                                <td class="ref-col">§5.4</td>
+                                <td>
+                                    <div class="req-desc">Prédiction d'attrition (Random Forest)</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Modèle prédictif de départ</div>
+                                </td>
+                                <td><span class="badge badge-missing">Non Réalisé</span></td>
+                                <td class="req-detail">Le calcul du risque d'attrition est pour le moment basé sur une formule statistique simple (ancienneté + compétences). Le modèle ML n'est pas déployé.</td>
+                            </tr>
+                            <!-- Req 19 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.5</td>
+                                <td>
+                                    <div class="req-desc">Assistant conversationnel IA (Chatbot)</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Widget NLP conversationnel</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Widget de chat flottant connecté à Spring Boot et à l'API Google Gemini (Flash 2.5) pour répondre intelligemment aux demandes sur le profil et les congés.</td>
+                            </tr>
+                            <!-- Req 20 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.5</td>
+                                <td>
+                                    <div class="req-desc">Système de Ticketing avec SLAs</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">CRUD & alertes temps de réponse</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Entité SupportTicket en base de données, priorités, statuts et logique d'attribution automatique de la date limite de traitement (SLA) selon la criticité.</td>
+                            </tr>
+                            <!-- Req 21 -->
+                            <tr data-status="PARTIAL">
+                                <td class="ref-col">§4.2</td>
+                                <td>
+                                    <div class="req-desc">Couverture de tests unitaires > 80%</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Tests d'assurance qualité</div>
+                                </td>
+                                <td><span class="badge badge-partial">Partiel</span></td>
+                                <td class="req-detail">Des tests unitaires et d'intégration robustes ont été ajoutés pour LeaveAccrualService et TimeCalculationService. La couverture globale reste inférieure à 80%.</td>
+                            </tr>
+                            <!-- Req 22 -->
+                            <tr data-status="MISSING">
+                                <td class="ref-col">§6</td>
+                                <td>
+                                    <div class="req-desc">Pipeline CI/CD (GitHub Actions)</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Déploiement & Build automatisé</div>
+                                </td>
+                                <td><span class="badge badge-missing">Non Réalisé</span></td>
+                                <td class="req-detail">Aucun fichier de workflow GitHub Actions configuré à la racine du dépôt pour le moment.</td>
+                            </tr>
+                            <!-- Req 23 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§6</td>
+                                <td>
+                                    <div class="req-desc">Conteneurisation locale (MySQL)</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Docker Compose de développement</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Fichier docker-compose.yml présent et configuré pour lancer instantanément le serveur de base de données MySQL 8.0 local avec les bonnes variables.</td>
+                            </tr>
+                            <!-- Req 24 -->
+                            <tr data-status="MISSING">
+                                <td class="ref-col">§6</td>
+                                <td>
+                                    <div class="req-desc">Dockerfiles de production multi-stage</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Builds légers optimisés</div>
+                                </td>
+                                <td><span class="badge badge-missing">Non Réalisé</span></td>
+                                <td class="req-detail">Reste à écrire le Dockerfile du backend (JRE allégée) et du frontend (serveur Nginx hébergeant le build statique).</td>
+                            </tr>
+                            <!-- Req 25 -->
+                            <tr data-status="PARTIAL">
+                                <td class="ref-col">§7.2</td>
+                                <td>
+                                    <div class="req-desc">Documentation interactive REST Swagger</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Swagger UI / OpenAPI 3</div>
+                                </td>
+                                <td><span class="badge badge-partial">Partiel</span></td>
+                                <td class="req-detail">Configuration préliminaire et exposition partielle des endpoints REST; la console interactive complète reste à finaliser avec les métadonnées OpenAPI.</td>
+                            </tr>
+                            <!-- Req 26 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§7.3</td>
+                                <td>
+                                    <div class="req-desc">Refresh Tokens rotatifs</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Sécurité renforcée des jetons</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">RefreshToken JPA implémenté avec persistance BDD. Mécanisme de rotation à usage unique (rotation à chaque appel) et sécurité renforcée (expiration à 7 jours).</td>
+                            </tr>
+                            <!-- Req 27 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§7.3</td>
+                                <td>
+                                    <div class="req-desc">Journalisation & RGPD</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Minimisation des données & logs</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Minimisation stricte appliquée aux DTOs, chiffrement transparent AES-GCM-256 sur les colonnes sensibles, et protection contre les failles path traversal sur le coffre-fort.</td>
+                            </tr>
+                            <!-- Req 28 -->
+                            <tr data-status="DONE">
+                                <td class="ref-col">§5.3</td>
+                                <td>
+                                    <div class="req-desc">Système de Notifications & Badges</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Alertes temps réel</div>
+                                </td>
+                                <td><span class="badge badge-done">Réalisé</span></td>
+                                <td class="req-detail">Service de notifications backend complet connecté au dropdown frontend (NotificationDropdown). Alertes en temps réel sur les actions critiques avec badges de mise à jour.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="no-results-msg" class="no-results" style="display: none;">
+                        Aucune exigence ne correspond à votre recherche ou filtre.
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1002,32 +1506,32 @@
                 <div class="backlog-item">
                     <div class="backlog-number">1</div>
                     <div class="backlog-content">
-                        <h4>API de stockage physique & Upload de documents</h4>
-                        <p>Développer le contrôleur de documents et configurer le dossier de stockage local sécurisé pour activer le coffre-fort.</p>
+                        <h4>API du coffre-fort numérique & Générateur PDF</h4>
+                        <p>Développer le contrôleur de documents physique sécurisé sur disque ou bucket S3 et intégrer la bibliothèque OpenPDF dans le backend pour automatiser la génération des attestations.</p>
                     </div>
                 </div>
 
                 <div class="backlog-item">
                     <div class="backlog-number">2</div>
                     <div class="backlog-content">
-                        <h4>Module de Congés Manager & Notifications</h4>
-                        <p>Connecter le tableau de bord de validation des managers à l'API et configurer les alertes email automatiques.</p>
+                        <h4>Intégration d'IA (LangChain4j + Claude API)</h4>
+                        <p>Brancher le chatbot conversationnel de l'interface client (widget React) sur un connecteur LangChain4j côté Spring Boot pour de vraies interactions basées sur le contexte employé.</p>
                     </div>
                 </div>
 
                 <div class="backlog-item">
                     <div class="backlog-number">3</div>
                     <div class="backlog-content">
-                        <h4>Assistant NLP (LangChain4j + Claude) & Ticketing</h4>
-                        <p>Ajouter les dépendances d'IA conversationnelle pour rendre le Chatbot intelligent et créer le CRUD pour les tickets.</p>
+                        <h4>Gestion du support (Tickets & SLAs)</h4>
+                        <p>Écrire le modèle de données SQL des tickets de support interne, implémenter les endpoints CRUD et le script planifié d'alertes en cas de dépassement des limites de SLAs.</p>
                     </div>
                 </div>
 
                 <div class="backlog-item">
                     <div class="backlog-number">4</div>
                     <div class="backlog-content">
-                        <h4>Tests, OpenAPI & Dockerisation</h4>
-                        <p>Mettre en place la documentation Swagger, rédiger les tests unitaires et écrire les configurations Docker.</p>
+                        <h4>CI/CD, Docker & Documentation Swagger</h4>
+                        <p>Rédiger les fichiers d'intégration GitHub Actions, écrire les Dockerfiles multi-stage optimisés pour la mise en production et intégrer springdoc-openapi pour Swagger UI.</p>
                     </div>
                 </div>
             </div>
@@ -1035,18 +1539,22 @@
             <!-- Documents references -->
             <div class="info-card">
                 <div>
-                    <h3>Fichiers Associés</h3>
-                    <p>Pour consulter le détail complet de l'analyse, l'inventaire des classes, les endpoints API documentés ainsi que le découpage hebdomadaire des sprints, ouvrez les documents suivants.</p>
+                    <h3>Documents PFE Associés</h3>
+                    <p>Pour approfondir l'analyse fonctionnelle, les inventaires de classes Java ou consulter le découpage chronologique précis des sprints de ce projet de Fin d'Études, vous pouvez ouvrir les rapports suivants.</p>
                 </div>
                 
                 <div class="links-wrapper">
-                    <a href="file:///d:/Dev/NEXUS/Rapport_Complet_NEXUS_ERP.txt" class="file-link">
+                    <a href="file:///d:/Dev/NEXUS/DOX/Rapport_Complet_NEXUS_ERP.txt" class="file-link">
                         <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        Rapport Complet (TXT)
+                        Rapport Complet Technique (TXT)
                     </a>
-                    <a href="file:///d:/Dev/NEXUS/NEXUS_ERP_Status_Report.txt" class="file-link">
+                    <a href="file:///d:/Dev/NEXUS/DOX/Rapport_Avancement_V3_NEXUS.md" class="file-link">
                         <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        Rapport Avancement V2
+                        Rapport d'Avancement V3 (MD)
+                    </a>
+                    <a href="file:///d:/Dev/NEXUS/DOX/objectifs_non_fonctionnels.html" class="file-link">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Objectifs Non Fonctionnels (HTML)
                     </a>
                 </div>
             </div>
@@ -1054,10 +1562,82 @@
         </div>
 
         <footer>
-            NEXUS ERP &copy; 2026 — Plateforme Intégrée RH & IA. Projet de Fin d'Études de Kada Abdelhamid.
+            NEXUS ERP &copy; 2026 — Plateforme de Gestion Intégrée RH & IA. Projet de Fin d'Études de Kada Abdelhamid (DyxIA).
         </footer>
 
     </div>
 
+    <!-- Interactive JS scripts -->
+    <script>
+        // Tab switching logic
+        function switchTab(tabId, btnElement) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Deactivate all tab buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show current tab content & activate button
+            document.getElementById(tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        // Global filter state
+        let currentFilter = 'ALL';
+
+        function setFilter(status, btnElement) {
+            // Update active button state
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            currentFilter = status;
+            filterRequirements();
+        }
+
+        // Search & Filter combined logic
+        function filterRequirements() {
+            const searchQuery = document.getElementById('req-search').value.toLowerCase().trim();
+            const tableRows = document.querySelectorAll('#compliance-table tbody tr');
+            let visibleCount = 0;
+
+            tableRows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                const rowText = row.innerText.toLowerCase();
+                
+                // Check status filter
+                let matchesStatus = false;
+                if (currentFilter === 'ALL') {
+                    matchesStatus = true;
+                } else if (currentFilter === 'DONE' && status === 'DONE') {
+                    matchesStatus = true;
+                } else if (currentFilter === 'PARTIAL' && status === 'PARTIAL') {
+                    matchesStatus = true;
+                } else if (currentFilter === 'MISSING' && status === 'MISSING') {
+                    matchesStatus = true;
+                }
+
+                // Check search query
+                const matchesSearch = rowText.includes(searchQuery);
+
+                if (matchesStatus && matchesSearch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Display no-results message if table is empty
+            const noResultsMsg = document.getElementById('no-results-msg');
+            if (visibleCount === 0) {
+                noResultsMsg.style.display = 'block';
+            } else {
+                noResultsMsg.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>

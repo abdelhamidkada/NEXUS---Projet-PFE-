@@ -66,6 +66,7 @@ public class TimeCalculationService {
 
         long regularSeconds = 0;
         long overtimeSeconds = 0;
+        long nightSeconds = 0;
         LocalDateTime currentCheckIn = null;
         boolean isMissingCheckout = false;
 
@@ -96,6 +97,10 @@ public class TimeCalculationService {
                         overtimeSeconds += Duration.between(ovStart, ovEnd).toSeconds();
                     }
 
+                    // Calcul des heures de nuit [21:00, 06:00]
+                    Duration nightDuration = calculateNightHours(checkIn, checkOut);
+                    nightSeconds += nightDuration.toSeconds();
+
                     currentCheckIn = null; // Pointage apparié avec succès
                 }
             }
@@ -109,18 +114,21 @@ public class TimeCalculationService {
         // Calcul des heures décimales
         double regularHours = regularSeconds / 3600.0;
         double overtimeHours = overtimeSeconds / 3600.0;
+        double nightHours = nightSeconds / 3600.0;
 
         // Arrondi à 2 décimales
         regularHours = Math.round(regularHours * 100.0) / 100.0;
         overtimeHours = Math.round(overtimeHours * 100.0) / 100.0;
+        nightHours = Math.round(nightHours * 100.0) / 100.0;
 
-        double totalHours = regularHours + overtimeHours;
+        double totalHours = regularHours + overtimeHours + nightHours;
         totalHours = Math.round(totalHours * 100.0) / 100.0;
 
         return DailyTimeReport.builder()
                 .date(date)
                 .totalHours(totalHours)
                 .overtimeHours(overtimeHours)
+                .nightHours(nightHours)
                 .isMissingCheckout(isMissingCheckout)
                 .build();
     }
@@ -186,6 +194,7 @@ public class TimeCalculationService {
             String checkOutTime = null;
             Double hoursWorked = daily.getTotalHours();
             Double dailyOvertimeHours = daily.getOvertimeHours();
+            Double dailyNightHours = daily.getNightHours();
             String status = null;
             UUID trackingId = null;
 
@@ -194,6 +203,7 @@ public class TimeCalculationService {
                 status = "Congé";
                 hoursWorked = 0.0;
                 dailyOvertimeHours = 0.0;
+                dailyNightHours = 0.0;
             } else {
                 LocalDateTime startOfDay = current.atStartOfDay();
                 LocalDateTime endOfDay = current.plusDays(1).atStartOfDay();
@@ -239,6 +249,7 @@ public class TimeCalculationService {
                     .checkOutTime(checkOutTime)
                     .hoursWorked(hoursWorked)
                     .overtimeHours(dailyOvertimeHours)
+                    .nightHours(dailyNightHours)
                     .status(status)
                     .trackingId(trackingId)
                     .build());
@@ -338,5 +349,38 @@ public class TimeCalculationService {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("L'identifiant de l'employé doit correspondre au type Long utilisé par EmployeeProfile. L'UUID fourni n'est pas convertible : " + employeeId);
         }
+    }
+
+    /**
+     * Calcule la durée exacte d'intersection d'une période de travail avec la plage horaire de nuit.
+     * Plage de nuit définie de 21:00 à 06:00 selon les standards français.
+     *
+     * @param clockIn  Date et heure de début du shift.
+     * @param clockOut Date et heure de fin du shift.
+     * @return La durée travaillée pendant la nuit.
+     */
+    public Duration calculateNightHours(LocalDateTime clockIn, LocalDateTime clockOut) {
+        if (clockIn == null || clockOut == null || !clockIn.isBefore(clockOut)) {
+            return Duration.ZERO;
+        }
+
+        Duration totalNightDuration = Duration.ZERO;
+        LocalDate startDate = clockIn.toLocalDate();
+        LocalDate endDate = clockOut.toLocalDate();
+
+        // On vérifie les fenêtres de nuit du jour précédent (au cas où le shift commence avant 06:00) au jour de fin
+        for (LocalDate date = startDate.minusDays(1); !date.isAfter(endDate); date = date.plusDays(1)) {
+            LocalDateTime windowStart = date.atTime(21, 0);
+            LocalDateTime windowEnd = date.plusDays(1).atTime(6, 0);
+
+            LocalDateTime overlapStart = clockIn.isAfter(windowStart) ? clockIn : windowStart;
+            LocalDateTime overlapEnd = clockOut.isBefore(windowEnd) ? clockOut : windowEnd;
+
+            if (overlapStart.isBefore(overlapEnd)) {
+                totalNightDuration = totalNightDuration.plus(Duration.between(overlapStart, overlapEnd));
+            }
+        }
+
+        return totalNightDuration;
     }
 }

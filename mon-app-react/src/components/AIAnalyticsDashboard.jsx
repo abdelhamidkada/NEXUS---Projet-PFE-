@@ -11,6 +11,7 @@ import {
   Loader2
 } from 'lucide-react';
 import apiClient from '../api/apiClient';
+import TimecardGrid from './TimecardGrid';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -363,6 +364,9 @@ export default function AIAnalyticsDashboard() {
           </table>
         </div>
       </div>
+      
+      {/* Timecard Grid integration */}
+      <TimecardGrid />
       
     </div>
   );
