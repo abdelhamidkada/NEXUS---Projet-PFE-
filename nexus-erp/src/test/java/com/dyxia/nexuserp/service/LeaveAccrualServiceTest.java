@@ -97,6 +97,34 @@ class LeaveAccrualServiceTest {
     }
 
     @Test
+    void testProcessAccrualsCapsAt30() {
+        EmployeeProfile profile = EmployeeProfile.builder()
+                .id(4L)
+                .leaveBalance(29.0)
+                .build();
+
+        MonthlyCycle cycle = MonthlyCycle.builder()
+                .id(102L)
+                .employeeProfile(profile)
+                .startDate(LocalDate.of(2026, 5, 16))
+                .endDate(LocalDate.of(2026, 6, 15))
+                .validatedAsWorked(true)
+                .processedForAccrual(false)
+                .build();
+
+        Mockito.when(monthlyCycleRepository.findByValidatedAsWorkedTrueAndProcessedForAccrualFalse())
+                .thenReturn(Arrays.asList(cycle));
+
+        leaveAccrualService.processAccruals();
+
+        assertEquals(30.0, profile.getLeaveBalance());
+        assertTrue(cycle.isProcessedForAccrual());
+
+        Mockito.verify(employeeProfileRepository, Mockito.times(1)).save(profile);
+        Mockito.verify(monthlyCycleRepository, Mockito.times(1)).save(cycle);
+    }
+
+    @Test
     void testCreateAndValidateTestCycleSuccess() {
         EmployeeProfile profile = EmployeeProfile.builder()
                 .id(3L)

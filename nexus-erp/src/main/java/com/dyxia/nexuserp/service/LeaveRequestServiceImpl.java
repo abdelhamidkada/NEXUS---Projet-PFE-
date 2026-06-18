@@ -93,6 +93,17 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
                 if (!"HR_ADMIN".equals(userRole)) {
                     throw new InvalidLeaveTransitionException("Seul un administrateur RH (HR_ADMIN) est autorisé à traiter une demande déjà validée N1 (VALIDATED_N1 -> PROCESSED_HR).");
                 }
+                
+                // Imputation du solde de congés si le type est ANNUAL (Congé Annuel)
+                if (leaveRequest.getType() == com.dyxia.nexuserp.model.LeaveType.ANNUAL) {
+                    EmployeeProfile employee = leaveRequest.getEmployeeProfile();
+                    if (employee != null) {
+                        double duration = calculateWorkingDays(leaveRequest.getStartDate(), leaveRequest.getEndDate());
+                        double currentBalance = employee.getLeaveBalance() != null ? employee.getLeaveBalance() : 0.0;
+                        employee.setLeaveBalance(currentBalance - duration);
+                        employeeProfileRepository.save(employee);
+                    }
+                }
             } else {
                 throw new InvalidLeaveTransitionException("Transition d'état non autorisée : VALIDATED_N1 vers " + newStatus);
             }
@@ -108,6 +119,64 @@ public class LeaveRequestServiceImpl implements LeaveRequestService {
 
         return leaveRequestRepository.save(leaveRequest);
     }
+
+    private static double calculateWorkingDays(java.time.LocalDate start, java.time.LocalDate end) {
+        if (start == null || end == null || start.isAfter(end)) {
+            return 0;
+        }
+        double count = 0;
+        java.time.LocalDate curr = start;
+        while (!curr.isAfter(end)) {
+            if (curr.getDayOfWeek() != java.time.DayOfWeek.SUNDAY && !isFrenchPublicHoliday(curr)) {
+                count++;
+            }
+            curr = curr.plusDays(1);
+        }
+        return count;
+    }
+
+    private static boolean isFrenchPublicHoliday(java.time.LocalDate date) {
+        int year = date.getYear();
+        int month = date.getMonthValue();
+        int day = date.getDayOfMonth();
+
+        // Jours fériés fixes en France
+        if (month == 1 && day == 1) return true;   // Jour de l'An
+        if (month == 5 && day == 1) return true;   // Fête du Travail
+        if (month == 5 && day == 8) return true;   // Victoire 1945
+        if (month == 7 && day == 14) return true;  // Fête Nationale
+        if (month == 8 && day == 15) return true;  // Assomption
+        if (month == 11 && day == 1) return true;  // Toussaint
+        if (month == 11 && day == 11) return true; // Armistice 1918
+        if (month == 12 && day == 25) return true; // Noël
+
+        // Jours fériés mobiles basés sur Pâques
+        java.time.LocalDate easter = getEasterSunday(year);
+        if (date.equals(easter.plusDays(1))) return true;  // Lundi de Pâques
+        if (date.equals(easter.plusDays(39))) return true; // Ascension
+        if (date.equals(easter.plusDays(50))) return true; // Lundi de Pentecôte
+
+        return false;
+    }
+
+    private static java.time.LocalDate getEasterSunday(int year) {
+        int a = year % 19;
+        int b = year / 100;
+        int c = year % 100;
+        int d = b / 4;
+        int e = b % 4;
+        int f = (b + 8) / 25;
+        int g = (b - f + 1) / 3;
+        int h = (19 * a + b - d - g + 15) % 30;
+        int i = c / 4;
+        int k = c % 4;
+        int l = (32 + 2 * e + 2 * i - h - k) % 7;
+        int m = (a + 11 * h + 22 * l) / 451;
+        int month = (h + l - 7 * m + 114) / 31;
+        int day = ((h + l - 7 * m + 114) % 31) + 1;
+        return java.time.LocalDate.of(year, month, day);
+    }
+
 
     @Override
     public List<LeaveRequestResponse> getAllLeaveRequests() {

@@ -39,9 +39,9 @@ public class LeaveAccrualService {
         for (MonthlyCycle cycle : pendingCycles) {
             EmployeeProfile profile = cycle.getEmployeeProfile();
             double currentBalance = profile.getLeaveBalance() != null ? profile.getLeaveBalance() : 0.0;
-            
-            // Auto-incrément de 2.5 jours
-            profile.setLeaveBalance(currentBalance + 2.5);
+            // Auto-incrément de 2.5 jours plafonné à 30.0 jours (limite annuelle légale en France)
+            double newBalance = Math.min(30.0, currentBalance + 2.5);
+            profile.setLeaveBalance(newBalance);
             cycle.setProcessedForAccrual(true);
 
             employeeProfileRepository.save(profile);

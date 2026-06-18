@@ -133,23 +133,6 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
 
   const { user } = useAuthStore();
 
-  // Helper to calculate leave balance dynamically based on hireDate: 2.5 days per worked month
-  const calculateLeaveBalance = (hireDateStr) => {
-    if (!hireDateStr) return '0.0';
-    const hireDate = new Date(hireDateStr);
-    const today = new Date();
-    
-    // Difference in months
-    let months = (today.getFullYear() - hireDate.getFullYear()) * 12 + (today.getMonth() - hireDate.getMonth());
-    // Adjust if current day is less than hire day
-    if (today.getDate() < hireDate.getDate()) {
-      months -= 1;
-    }
-    months = Math.max(0, months);
-    
-    const balance = months * 2.5;
-    return balance.toFixed(1);
-  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -457,7 +440,7 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
             {(isOwner || isAuthorizedRole) && profile.hireDate && (
               <div className="mt-2 text-right">
                 <p className="text-blue-200 font-bold text-[9px] uppercase tracking-wider">Solde de Congés</p>
-                <p className="font-semibold mt-0.5">{calculateLeaveBalance(profile.hireDate)} jours</p>
+                <p className="font-semibold mt-0.5">{profile.leaveBalance != null ? profile.leaveBalance.toFixed(1) : '0.0'} jours</p>
               </div>
             )}
           </div>
@@ -494,13 +477,13 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
               {profile.hireDate && (
                 <div className="bg-gradient-to-r from-teal-500 to-emerald-500 rounded-3xl p-6 text-white shadow-md flex items-center justify-between">
                   <div className="space-y-1">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-100">Solde de Congés Annuels (Calculé)</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-100">Solde de Congés Annuels</h3>
                     <p className="text-[10px] text-emerald-800 bg-white/95 border border-emerald-100/20 px-2.5 py-1 rounded-xl inline-block font-extrabold shadow-sm mt-1">
-                      Calculé sur la règle de 2.5 jours par mois travaillé depuis l'embauche ({new Date(profile.hireDate).toLocaleDateString('fr-FR')})
+                      Solde de congés payés disponible dans la base de données (acquis via le cumul mensuel)
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-4xl font-black">{calculateLeaveBalance(profile.hireDate)}</span>
+                    <span className="text-4xl font-black">{profile.leaveBalance != null ? profile.leaveBalance.toFixed(1) : '0.0'}</span>
                     <span className="text-xs font-bold text-emerald-100 block mt-0.5">jours cumulés</span>
                   </div>
                 </div>
@@ -558,7 +541,7 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
                     <InfoCard
                       icon={Calendar}
                       label="Solde de congés"
-                      value={profile.hireDate ? `${calculateLeaveBalance(profile.hireDate)} jours` : '0 jours'}
+                      value={profile.leaveBalance != null ? `${profile.leaveBalance.toFixed(1)} jours` : '0.0 jours'}
                     />
                   )}
 
