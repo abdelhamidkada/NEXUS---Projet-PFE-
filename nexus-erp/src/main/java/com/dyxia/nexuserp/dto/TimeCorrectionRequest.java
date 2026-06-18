@@ -5,25 +5,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
-import java.util.UUID;
 
 /**
- * Détail d'assiduité journalier pour le rapport mensuel.
+ * Payload de requête envoyé par un manager pour corriger le pointage d'une journée spécifique.
  */
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class DailyAttendanceDetail {
+@AllArgsConstructor
+public class TimeCorrectionRequest {
+    private Long employeeId;
     private LocalDate date;
     private String checkInTime;
     private String checkOutTime;
-    private Double hoursWorked;
-    private Double overtimeHours;
-    private Double nightHours;
-    private String status;
-    private UUID trackingId;
-    private String location;
     private String payCode;
     private String accrual;
 }

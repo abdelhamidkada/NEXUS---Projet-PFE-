@@ -117,7 +117,7 @@ public class SecurityConfig {
             //    - Accès public total pour l'authentification (/api/auth/** et /api/v1/auth/**)
             //    - Authentification obligatoire pour tout le reste
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/v1/auth/**", "/api/v1/ai/**", "/api/v1/employees/**", "/api/v1/documents/**", "/api/v1/time-tracking/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/api/auth/**", "/api/v1/auth/**", "/api/v1/ai/**", "/api/v1/employees/**", "/api/v1/documents/**", "/api/v1/time-tracking/**", "/api/v1/analytics/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/api/v1/employee-profiles/**", "/api/v1/hr/profiles/**").permitAll()
                 .anyRequest().authenticated()
             )

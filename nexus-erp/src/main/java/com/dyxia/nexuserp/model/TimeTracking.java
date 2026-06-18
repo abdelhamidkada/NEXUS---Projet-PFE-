@@ -40,6 +40,9 @@ public class TimeTracking {
     @Column(name = "attendance_status", length = 50)
     private String attendanceStatus;
 
+    @Transient
+    private String location;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_profile_id", nullable = false)
     private EmployeeProfile employeeProfile;

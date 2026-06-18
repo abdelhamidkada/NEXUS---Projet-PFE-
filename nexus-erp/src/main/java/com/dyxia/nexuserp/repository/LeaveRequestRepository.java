@@ -24,4 +24,14 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, UUID
             @Param("employeeId") Long employeeId,
             @Param("date") LocalDate date
     );
+
+    @Query("SELECT lr FROM LeaveRequest lr " +
+           "WHERE lr.employeeProfile.id = :employeeId " +
+           "AND (lr.status = com.dyxia.nexuserp.model.LeaveStatus.VALIDATED_N1 OR lr.status = com.dyxia.nexuserp.model.LeaveStatus.PROCESSED_HR) " +
+           "AND lr.startDate <= :endDate AND lr.endDate >= :startDate")
+    List<LeaveRequest> findValidatedLeavesForRange(
+            @Param("employeeId") Long employeeId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 }

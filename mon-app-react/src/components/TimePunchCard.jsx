@@ -32,7 +32,8 @@ export default function TimePunchCard({ onShowToast }) {
   const [geoState, setGeoState] = useState({
     coords: null,
     loading: false,
-    error: null
+    error: null,
+    locationName: null
   });
 
   const [employeeId, setEmployeeId] = useState(user?.profileId || null);
@@ -181,11 +182,17 @@ export default function TimePunchCard({ onShowToast }) {
       const type = isCheckedIn ? 'CHECK_OUT' : 'CHECK_IN';
 
       // 3. Appel API
-      await timeTrackingApi.punch(type, coords.latitude, coords.longitude, employeeId);
+      const result = await timeTrackingApi.punch(type, coords.latitude, coords.longitude, employeeId);
+      const resolvedLoc = result?.location || "Poitiers, France";
 
       // 4. Mettre à jour l'état local et notifier de manière cohérente
       const newCheckedInState = type === 'CHECK_IN';
       setIsCheckedIn(newCheckedInState);
+      
+      setGeoState(prev => ({
+        ...prev,
+        locationName: resolvedLoc
+      }));
       
       if (onShowToast) {
         onShowToast(
@@ -389,7 +396,7 @@ export default function TimePunchCard({ onShowToast }) {
           {geoState.coords && !geoState.loading && (
             <div className="flex items-center gap-2 text-emerald-700 justify-center font-medium">
               <MapPin className="h-4 w-4 shrink-0 text-emerald-600 animate-bounce" />
-              <span>Position validée : {geoState.coords.latitude.toFixed(4)}, {geoState.coords.longitude.toFixed(4)}</span>
+              <span>Position validée : {geoState.locationName || "Géolocalisation réussie"}</span>
             </div>
           )}
 
@@ -519,6 +526,12 @@ export default function TimePunchCard({ onShowToast }) {
                     {day.hoursWorked > 0 && (
                       <p className="text-[10px] text-blue-500 font-medium mt-0.5">
                         {formatDecimalHours(day.hoursWorked)} travaillé{day.overtimeHours > 0 ? ` (+${formatDecimalHours(day.overtimeHours)} sup)` : ''}
+                      </p>
+                    )}
+                    {day.location && (
+                      <p className="text-[10px] text-gray-400 font-medium flex items-center gap-1 mt-0.5">
+                        <MapPin className="h-3 w-3 text-gray-400 shrink-0" />
+                        {day.location}
                       </p>
                     )}
                   </div>

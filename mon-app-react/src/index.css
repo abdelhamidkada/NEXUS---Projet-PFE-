@@ -27,22 +27,28 @@
 
 /* ─── Premium Dark Mode Overrides ────────────────────────────────────────── */
 .dark body {
-  background-color: #0b0f19 !important; /* Very dark blue-slate background */
-  color: #f1f5f9 !important;
+  background-color: #0f172a !important; /* Slate-900 (very dark gray-slate) */
+  color: #cbd5e1 !important; /* Slate-300 */
 }
 
 /* Glassmorphism card / box backgrounds */
 .dark .bg-white {
-  background-color: #111827 !important; /* Slate-900 / dark card background */
+  background-color: #1e293b !important; /* Slate-800 (slightly lighter for cards) */
 }
 .dark .bg-gray-50 {
-  background-color: #0b0f19 !important; /* Main page background */
+  background-color: #0f172a !important; /* Slate-900 */
 }
 .dark .bg-slate-50 {
-  background-color: #1f2937 !important; /* Slate-800 secondary background */
+  background-color: #0f172a !important; /* Slate-900 inner widgets */
 }
 .dark .bg-slate-100 {
-  background-color: #374151 !important; /* Slate-700 active item */
+  background-color: #1e293b !important; /* Slate-800 header/tables */
+}
+.dark .bg-slate-100\/80 {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+}
+.dark .bg-slate-50\/50 {
+  background-color: rgba(15, 23, 42, 0.5) !important;
 }
 
 /* Border overrides */
@@ -50,54 +56,72 @@
 .dark .border-gray-100,
 .dark .border-slate-200,
 .dark .border-slate-100 {
-  border-color: #1f2937 !important; /* Subtle dark border */
+  border-color: #334155 !important; /* Slate-700 (subtle contrast border) */
 }
 
-/* Text overrides */
+/* Text overrides (non-aggressive contrast) */
 .dark .text-gray-900, .dark .text-slate-900 {
-  color: #f9fafb !important;
+  color: #f1f5f9 !important; /* Slate-100 for strong titles */
 }
 .dark .text-gray-800, .dark .text-slate-800 {
-  color: #f3f4f6 !important;
+  color: #e2e8f0 !important; /* Slate-200 for headings */
 }
 .dark .text-gray-700, .dark .text-slate-700 {
-  color: #e5e7eb !important;
+  color: #cbd5e1 !important; /* Slate-300 for main body text */
+}
+.dark .text-gray-655, .dark .text-gray-650 {
+  color: #cbd5e1 !important;
 }
 .dark .text-gray-600, .dark .text-slate-600 {
-  color: #d1d5db !important;
+  color: #94a3b8 !important; /* Slate-400 for secondary text */
 }
 .dark .text-gray-500, .dark .text-slate-500 {
-  color: #9ca3af !important;
+  color: #94a3b8 !important; /* Slate-400 */
 }
 .dark .text-gray-400, .dark .text-slate-400 {
-  color: #9ca3af !important;
+  color: #64748b !important; /* Slate-500 for captions / disabled text */
 }
 
-/* Interactive elements */
-.dark .hover\:bg-gray-50:hover {
-  background-color: #1f2937 !important;
-}
-.dark .hover\:bg-gray-100:hover {
-  background-color: #1f2937 !important;
-}
-.dark .hover\:bg-slate-50:hover {
-  background-color: #1f2937 !important;
-}
-.dark .hover\:bg-slate-100:hover {
-  background-color: #1f2937 !important;
+/* Interactive elements / Lists hover states */
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover,
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-slate-100\/50:hover {
+  background-color: #334155 !important; /* Slate-700 hover state */
 }
 
-/* Form inputs */
+/* Form inputs styling */
 .dark input, .dark select, .dark textarea {
-  background-color: #1f2937 !important;
-  color: #f9fafb !important;
-  border-color: #374151 !important;
+  background-color: #0f172a !important; /* Dark inset input */
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #64748b !important;
 }
 .dark select option {
-  background-color: #111827 !important;
-  color: #f9fafb !important;
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
 }
 .dark .divide-y > :not([hidden]) ~ :not([hidden]) {
-  border-color: #1f2937 !important;
+  border-color: #334155 !important;
+}
+
+/* High-End Depth & Shadow overrides using fine-tuned dark ambient shadows + high-tech light ring glows */
+.dark .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.045) !important;
+}
+.dark .shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+}
+.dark .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+}
+.dark .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.075) !important;
+}
+.dark .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.09) !important;
 }
 

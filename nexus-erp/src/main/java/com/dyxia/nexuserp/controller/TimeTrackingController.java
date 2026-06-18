@@ -2,6 +2,7 @@ package com.dyxia.nexuserp.controller;
 
 import com.dyxia.nexuserp.dto.DailyTimeReport;
 import com.dyxia.nexuserp.dto.MonthlyCycleReport;
+import com.dyxia.nexuserp.dto.TimeCorrectionRequest;
 import com.dyxia.nexuserp.model.TimeTracking;
 import com.dyxia.nexuserp.service.TimeCalculationService;
 import com.dyxia.nexuserp.service.QrCodeService;
@@ -74,5 +75,15 @@ public class TimeTrackingController {
     public ResponseEntity<byte[]> generateEmployeeQrCode(@PathVariable String matricule) {
         byte[] qrCodeImage = qrCodeService.generateEmployeeQrCode(matricule);
         return ResponseEntity.ok(qrCodeImage);
+    }
+
+    /**
+     * Endpoint PUT permettant à un manager de corriger des pointages pour un employé et une date donnée.
+     */
+    @PutMapping("/api/v1/tracking/correct")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('MANAGER', 'HR_ADMIN', 'DIRECTION')")
+    public ResponseEntity<Void> correctTimeTracking(@RequestBody TimeCorrectionRequest request) {
+        timeCalculationService.correctTimeTracking(request);
+        return ResponseEntity.ok().build();
     }
 }

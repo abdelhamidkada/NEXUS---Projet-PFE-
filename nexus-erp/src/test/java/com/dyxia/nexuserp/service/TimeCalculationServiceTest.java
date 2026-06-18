@@ -166,6 +166,38 @@ class TimeCalculationServiceTest {
     }
 
     @Test
+    void testRecordTimeTrackingCheckoutTolerance() {
+        Long employeeId = 1L;
+        com.dyxia.nexuserp.model.EmployeeProfile employee = com.dyxia.nexuserp.model.EmployeeProfile.builder().id(employeeId).build();
+        Mockito.when(employeeProfileRepository.findById(employeeId)).thenReturn(java.util.Optional.of(employee));
+        Mockito.when(timeTrackingRepository.save(any(TimeTracking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // 15:55 CHECK_OUT (exactly at the 5 min tolerance limit) -> Should be "Normal"
+        TimeTracking tracking55 = TimeTracking.builder()
+                .timestamp(LocalDateTime.of(2026, 6, 11, 15, 55))
+                .type(TrackingType.CHECK_OUT)
+                .build();
+        TimeTracking recorded55 = timeCalculationService.recordTimeTracking(employeeId, tracking55);
+        assertEquals("Normal", recorded55.getAttendanceStatus());
+
+        // 15:56 CHECK_OUT (within 5 mins) -> Should be "Normal"
+        TimeTracking tracking56 = TimeTracking.builder()
+                .timestamp(LocalDateTime.of(2026, 6, 11, 15, 56))
+                .type(TrackingType.CHECK_OUT)
+                .build();
+        TimeTracking recorded56 = timeCalculationService.recordTimeTracking(employeeId, tracking56);
+        assertEquals("Normal", recorded56.getAttendanceStatus());
+
+        // 15:54 CHECK_OUT (outside tolerance, 6 mins early) -> Should be "Absence injustifiée"
+        TimeTracking tracking54 = TimeTracking.builder()
+                .timestamp(LocalDateTime.of(2026, 6, 11, 15, 54))
+                .type(TrackingType.CHECK_OUT)
+                .build();
+        TimeTracking recorded54 = timeCalculationService.recordTimeTracking(employeeId, tracking54);
+        assertEquals("Absence injustifiée", recorded54.getAttendanceStatus());
+    }
+
+    @Test
     void testOverrideLatePunchIn() {
         java.util.UUID trackingId = java.util.UUID.randomUUID();
         TimeTracking tracking = TimeTracking.builder()

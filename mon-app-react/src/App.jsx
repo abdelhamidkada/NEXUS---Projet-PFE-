@@ -7,7 +7,7 @@ import nexusLogo from './assets/NEXUS-LOGO.png';
 import TimePunchCard from './components/TimePunchCard';
 import LeaveRequestEmployeeView from './components/LeaveRequestEmployeeView';
 import LeaveManagerDashboard from './components/LeaveManagerDashboard';
-import AIAnalyticsDashboard from './components/AIAnalyticsDashboard';
+import DashboardView from './components/DashboardView';
 import SmartAssistantWidget from './components/SmartAssistantWidget';
 import DocumentsVaultView from './components/DocumentsVaultView';
 import SkillsMatrixView from './components/SkillsMatrixView';
@@ -612,42 +612,6 @@ function App() {
             </button>
           ))}
         </nav>
-
-        {/* User profile footer */}
-        <div className="p-3 border-t border-gray-100">
-          <div 
-            onClick={() => {
-              if (user?.profileId) {
-                navigate(`/profil/${user.profileId}`);
-              } else {
-                const myProfile = profiles.find(p => p.email?.toLowerCase() === user?.email?.toLowerCase());
-                if (myProfile) navigate(`/profil/${myProfile.id}`);
-                else showToast("Profil introuvable", "error");
-              }
-            }}
-            className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-50 cursor-pointer group"
-          >
-            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-              <span className="text-xs font-bold text-blue-700">
-                {user?.name?.charAt(0) || 'U'}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-gray-800 truncate">{user?.name}</p>
-              <p className="text-[10px] text-gray-400 truncate">{user?.email}</p>
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                logout();
-              }}
-              title={t('header.logout', 'Se déconnecter')}
-              className="p-1 rounded text-gray-300 hover:text-red-500 transition-colors"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
       </aside>
 
       {/* ─── MAIN AREA (Topbar + Content) ────────────────────────────────── */}
@@ -848,7 +812,7 @@ function App() {
             const matchedProfilId = matchProfil ? parseInt(matchProfil[1]) : null;
 
             if (currentPath === '/tableau-de-bord') {
-              return <AIAnalyticsDashboard />;
+              return <DashboardView onShowToast={showToast} navigate={navigate} />;
             } else if (currentPath === '/parametres') {
               return <SettingsView onShowToast={showToast} />;
             } else if (currentPath === '/temps') {

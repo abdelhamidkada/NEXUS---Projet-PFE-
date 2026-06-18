@@ -405,12 +405,7 @@ export default function LeaveRequestEmployeeView({ onShowToast }) {
                       <option value="" disabled>
                         Sélectionner un type...
                       </option>
-                      {LEAVE_TYPES.filter((lt) => {
-                        if (lt.value === 'SICK') {
-                          return user?.roles?.some((r) => ['HR_ADMIN', 'DIRECTION'].includes(r));
-                        }
-                        return true;
-                      }).map((lt) => (
+                      {LEAVE_TYPES.filter((lt) => lt.value !== 'SICK').map((lt) => (
                         <option key={lt.value} value={lt.value}>
                           {lt.label}
                         </option>

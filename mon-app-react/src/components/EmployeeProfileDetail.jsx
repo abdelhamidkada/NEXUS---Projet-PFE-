@@ -6,6 +6,7 @@ import {
   User,
   Clock,
   FileText,
+  FileCheck,
   Award,
   AlertCircle,
   CheckCircle,
@@ -26,6 +27,7 @@ import {
 } from 'lucide-react';
 import apiClient from '../api/apiClient';
 import useAuthStore from '../store/useAuthStore';
+import TimecardGrid from './TimecardGrid';
 
 const LEAVE_TYPES = {
   ANNUAL: { label: 'Congé Annuel', bg: 'bg-blue-50 text-blue-700 border-blue-100' },
@@ -130,6 +132,24 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
   const [showHierarchy, setShowHierarchy] = useState(false);
 
   const { user } = useAuthStore();
+
+  // Helper to calculate leave balance dynamically based on hireDate: 2.5 days per worked month
+  const calculateLeaveBalance = (hireDateStr) => {
+    if (!hireDateStr) return '0.0';
+    const hireDate = new Date(hireDateStr);
+    const today = new Date();
+    
+    // Difference in months
+    let months = (today.getFullYear() - hireDate.getFullYear()) * 12 + (today.getMonth() - hireDate.getMonth());
+    // Adjust if current day is less than hire day
+    if (today.getDate() < hireDate.getDate()) {
+      months -= 1;
+    }
+    months = Math.max(0, months);
+    
+    const balance = months * 2.5;
+    return balance.toFixed(1);
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -265,6 +285,37 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
     }
   };
 
+  const handleExportAttestation = async () => {
+    try {
+      if (onShowToast) {
+        onShowToast("Génération de l'attestation de travail en cours...", "info");
+      }
+      const response = await apiClient.get(`/api/v1/documents/${profile.matricule}/export/attestation`, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `attestation_travail_${profile.matricule}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      if (onShowToast) {
+        onShowToast("Attestation exportée avec succès !", "success");
+      }
+    } catch (err) {
+      console.error("Erreur lors de l'exportation de l'attestation:", err);
+      if (onShowToast) {
+        onShowToast("Erreur lors de l'exportation de l'attestation.", "error");
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -324,13 +375,25 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
           {isAuthorizedRole ? 'Retour à la liste des profils' : 'Retour au tableau de bord'}
         </button>
 
-        <button
-          onClick={handleExportPdf}
-          className="inline-flex items-center gap-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95"
-        >
-          <FileText className="h-3.5 w-3.5" />
-          Exporter en PDF
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportPdf}
+            className="inline-flex items-center gap-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Exporter en PDF
+          </button>
+
+          {isHrOrDirection && (
+            <button
+              onClick={handleExportAttestation}
+              className="inline-flex items-center gap-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 px-3.5 py-2 rounded-xl shadow-sm hover:shadow transition-all active:scale-95"
+            >
+              <FileCheck className="h-3.5 w-3.5" />
+              Exporter l'Attestation
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Container */}
@@ -391,10 +454,10 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
                 <p className="font-semibold mt-0.5">{profile.timeInJob}</p>
               </div>
             )}
-            {(isOwner || isAuthorizedRole) && profile.leaveBalance !== null && profile.leaveBalance !== undefined && (
+            {(isOwner || isAuthorizedRole) && profile.hireDate && (
               <div className="mt-2 text-right">
                 <p className="text-blue-200 font-bold text-[9px] uppercase tracking-wider">Solde de Congés</p>
-                <p className="font-semibold mt-0.5">{profile.leaveBalance} jours</p>
+                <p className="font-semibold mt-0.5">{calculateLeaveBalance(profile.hireDate)} jours</p>
               </div>
             )}
           </div>
@@ -404,6 +467,9 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
         <div className="flex border-b border-gray-100 px-6 md:px-8">
           {[
             ['infos', 'Informations'],
+            ...(isOwner || isAuthorizedRole ? [
+              ['timecard', 'Carte de Temps']
+            ] : []),
             ...(isOwner || isHrOrDirection ? [
               ['skills', `Compétences (${profile.skills?.length || 0})`],
               ['documents', `Documents RH (${profile.documents?.length || 0})`]
@@ -424,6 +490,21 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
         <div className="p-6 md:p-8">
           {detailTab === 'infos' ? (
             <div className="space-y-8">
+              {/* Highlight Card for Annual Leave Balance calculated from hire_date */}
+              {profile.hireDate && (
+                <div className="bg-gradient-to-r from-teal-500 to-emerald-500 rounded-3xl p-6 text-white shadow-md flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-100">Solde de Congés Annuels (Calculé)</h3>
+                    <p className="text-[10px] text-emerald-800 bg-white/95 border border-emerald-100/20 px-2.5 py-1 rounded-xl inline-block font-extrabold shadow-sm mt-1">
+                      Calculé sur la règle de 2.5 jours par mois travaillé depuis l'embauche ({new Date(profile.hireDate).toLocaleDateString('fr-FR')})
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-4xl font-black">{calculateLeaveBalance(profile.hireDate)}</span>
+                    <span className="text-xs font-bold text-emerald-100 block mt-0.5">jours cumulés</span>
+                  </div>
+                </div>
+              )}
 
               {/* ━━━ SECTION PUBLIQUE [E] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
               <div>
@@ -477,7 +558,7 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
                     <InfoCard
                       icon={Calendar}
                       label="Solde de congés"
-                      value={profile.leaveBalance !== null && profile.leaveBalance !== undefined ? `${profile.leaveBalance} jours` : '0 jours'}
+                      value={profile.hireDate ? `${calculateLeaveBalance(profile.hireDate)} jours` : '0 jours'}
                     />
                   )}
 
@@ -537,13 +618,13 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
                             flatList.push(curr);
                             curr = curr.manager;
                           }
-                          flatList.reverse(); // du plus haut manager vers le profil ciblé
+                          // Do NOT reverse to start from the current employee and go upwards
                           
                           return (
                             <div className="relative pl-6 space-y-6 mt-2">
                               {/* Ligne verticale de connexion */}
                               {flatList.length > 1 && (
-                                <div className="absolute left-2.5 top-2.5 bottom-2.5 w-0.5 bg-gradient-to-b from-indigo-200 to-blue-200" />
+                                <div className="absolute left-2.5 top-2.5 bottom-2.5 w-0.5 bg-gradient-to-b from-blue-200 to-indigo-200" />
                               )}
                               
                               {flatList.map((node, index) => {
@@ -583,13 +664,19 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
                                           {node.firstName} {node.lastName}
                                         </p>
                                         {isCurrent && (
-                                          <span className="text-[9px] bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 rounded font-extrabold shadow-sm">
+                                          <span className="text-[9px] bg-blue-100 text-blue-805 border border-blue-200 px-1.5 py-0.5 rounded font-extrabold shadow-sm">
                                             Profil Actuel
                                           </span>
                                         )}
-                                        {index === 0 && !isCurrent && (
-                                          <span className="text-[9px] bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded font-extrabold">
-                                            Président / Top
+                                        {!isCurrent && (
+                                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-extrabold shadow-sm border ${
+                                            index === flatList.length - 1
+                                              ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                              : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                          }`}>
+                                            {index === flatList.length - 1 
+                                              ? 'Président / Top' 
+                                              : (index === 1 ? 'Manager Direct (N+1)' : `Superviseur (N+${index})`)}
                                           </span>
                                         )}
                                       </div>
@@ -689,7 +776,9 @@ export default function EmployeeProfileDetail({ profileId, navigate, onShowToast
               )}
 
             </div>
-          ) : (detailTab === 'skills' && (isOwner || isHrOrDirection)) ? (
+          ) : detailTab === 'timecard' && (isOwner || isAuthorizedRole) ? (
+            <TimecardGrid employeeId={profile.id} onShowToast={onShowToast} />
+          ) : detailTab === 'skills' && (isOwner || isHrOrDirection) ? (
             (() => {
               const skillsToDisplay = profile.skills || [];
               if (skillsToDisplay.length === 0) {
