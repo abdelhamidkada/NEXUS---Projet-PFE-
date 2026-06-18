@@ -25,9 +25,9 @@ spring:
 application:
   security:
     jwt:
-      secret-key: dGhpcy1pcy1hLXZlcnktc2VjdXJlLTMyLWJ5dGUtbG9uZy1rZXktZm9yLWp3dC1zaWduaW5nLXVzaW5nLWhmYWMtMjU2LWFsZ29yaXRobQ==
+      secret-key: ${JWT_SECRET_KEY:dGVzdC1qd3Qtc2VjcmV0LWtleS1taW5pbXVtLTMyLWNoYXJhY3RlcnMtbG9uZw==}
     encryption:
-      secret-key: "this-is-a-very-secure-32byte-key"
+      secret-key: ${ENCRYPTION_SECRET_KEY:dummy-key-32-bytes-long-exactly!}
 
 nexus:
   ai:
