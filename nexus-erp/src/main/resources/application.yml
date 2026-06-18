@@ -32,6 +32,6 @@ application:
 nexus:
   ai:
     gemini:
-      api-key: "AIzaSyBIL7A4QNu4jbbkBKqlF-U0uprXPSgwFsA"
+      api-key: ${GEMINI_API_KEY:}
   storage:
     path: d:/Dev/NEXUS/storage
